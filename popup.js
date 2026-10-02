@@ -29,14 +29,15 @@ async function init() {
     openalex: d.openalex ? [d.openalex] : [],
     source: d.source,
     title: d.title,
+    author: d.author,
   });
   show(pageState);
   if (!pageState.dois.length && !pageState.openalex.length) $('#manual').focus();
 }
 
-function stateFrom({ dois = [], openalex = [], source = null, title = null, text, leftover = '', onlyIds = true }) {
+function stateFrom({ dois = [], openalex = [], source = null, title = null, author = null, text, leftover = '', onlyIds = true }) {
   return {
-    dois, openalex, source, title, leftover, onlyIds,
+    dois, openalex, source, title, author, leftover, onlyIds,
     text: text ?? [...dois, ...openalex.map((o) => o.id)].join('\n'),
     year: null, note: '',
   };
@@ -62,6 +63,7 @@ async function show(state) {
   const next = { ...state };
   if (w.found) {
     next.title = w.title || state.title;
+    next.author = w.author || state.author;
     next.year = w.year;
     if (!next.dois.length && w.doi) next.dois = [w.doi];
     if (!next.openalex.length && w.id) next.openalex = [{ type: 'works', id: w.id }];
@@ -80,7 +82,8 @@ function render(state) {
   $('#empty').hidden = !!hasIds || state.source === 'manual';
 
   $('#source').textContent = SOURCE_LABELS[state.source] || '';
-  $('#title').textContent = state.title ? `${state.title}${state.year ? ` (${state.year})` : ''}` : '';
+  const title = state.title ? `${state.title}${state.year ? ` (${state.year})` : ''}` : '';
+  $('#title').textContent = [state.author, title].filter(Boolean).join(' — ');
   $('#note').textContent = state.note || '';
 
   const ids = $('#ids');

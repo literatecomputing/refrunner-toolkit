@@ -39,7 +39,7 @@ const ctx = await chromium.launchPersistentContext('', {
   args: ['--no-proxy-server', `--disable-extensions-except=${SP}/ext`, `--load-extension=${SP}/ext`],
 });
 const MOCK = {
-  'W2974823616': { id: 'https://openalex.org/W2974823616', doi: 'https://doi.org/10.1037/0003-066X.59.1.29', display_name: 'Mocked OpenAlex Title', publication_year: 2004 },
+  'W2974823616': { id: 'https://openalex.org/W2974823616', doi: 'https://doi.org/10.1037/0003-066X.59.1.29', display_name: 'Mocked OpenAlex Title', publication_year: 2004, authorships: [{ author: { display_name: 'Ann Author' } }, { author: { display_name: 'Bo Second' } }] },
   'doi:10.1111/j.1467-9280.2005.01636.x': { id: 'https://openalex.org/W2118746509', doi: 'https://doi.org/10.1111/j.1467-9280.2005.01636.x', display_name: 'What Children Are Looking at During Shared Storybook Reading', publication_year: 2005 },
 };
 await ctx.route('https://api.openalex.org/**', (route) => {
@@ -122,6 +122,7 @@ const ui = await popup.evaluate(() => ({
   links: [...document.querySelectorAll('#groups a')].map((a) => `${a.textContent} -> ${a.href}`),
 }));
 ok(ui.ids.includes('W2974823616') && ui.ids.length === 2 && ui.links.length >= 5, 'popup enriches OpenAlex id with DOI');
+ok(ui.title === 'Ann Author... — Mocked OpenAlex Title (2004)', `popup shows first author before title: ${ui.title}`);
 
 // 6. overflow page
 const big = 'Ref line number one, a reasonably long citation string.\n'.repeat(200);
