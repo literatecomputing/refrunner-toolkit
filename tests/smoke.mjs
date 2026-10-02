@@ -122,7 +122,7 @@ const ui = await popup.evaluate(() => ({
   links: [...document.querySelectorAll('#groups a')].map((a) => `${a.textContent} -> ${a.href}`),
 }));
 ok(ui.ids.includes('W2974823616') && ui.ids.length === 2 && ui.links.length >= 5, 'popup enriches OpenAlex id with DOI');
-ok(ui.title === 'Ann Author... — Mocked OpenAlex Title (2004)', `popup shows first author before title: ${ui.title}`);
+ok(ui.title === 'Author and Second (2004). Mocked OpenAlex Title', `popup shows APA-style author (year): ${ui.title}`);
 
 // 6. overflow page
 const big = 'Ref line number one, a reasonably long citation string.\n'.repeat(200);

@@ -1,5 +1,5 @@
-import { parseText, targetsFor } from './lib/doi.js';
-import { detectForTab, lookupWork, openTab, openOverflow } from './lib/chrome.js';
+import { parseText, targetsFor, citeLine } from './lib/doi.js';
+import { detectForTab, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
 
 const $ = (sel) => document.querySelector(sel);
 const SOURCE_LABELS = {
@@ -29,17 +29,18 @@ async function init() {
     openalex: d.openalex ? [d.openalex] : [],
     source: d.source,
     title: d.title,
-    author: d.author,
+    authors: d.authors,
+    year: d.year,
   });
   show(pageState);
   if (!pageState.dois.length && !pageState.openalex.length) $('#manual').focus();
 }
 
-function stateFrom({ dois = [], openalex = [], source = null, title = null, author = null, text, leftover = '', onlyIds = true }) {
+function stateFrom({ dois = [], openalex = [], source = null, title = null, authors = [], year = null, text, leftover = '', onlyIds = true }) {
   return {
-    dois, openalex, source, title, author, leftover, onlyIds,
+    dois, openalex, source, title, authors, year, leftover, onlyIds,
     text: text ?? [...dois, ...openalex.map((o) => o.id)].join('\n'),
-    year: null, note: '',
+    note: '', ra: {},
   };
 }
 
@@ -50,21 +51,32 @@ function onManualInput(e) {
   show(stateFrom({ ...p, source: 'manual' }));
 }
 
-/** Render now, then enrich from OpenAlex (title, missing DOI or W-id) and render again. */
+/**
+ * Render now, then enrich from OpenAlex (title, missing DOI or W-id), then from doi.org
+ * (which registry holds each DOI), re-rendering after each.
+ */
 async function show(state) {
   const token = ++renderToken;
   render(state);
   const single = state.onlyIds && state.dois.length + state.openalex.length === 1;
   const isWork = state.dois.length || state.openalex[0]?.type === 'works';
-  if (!single || !isWork) return;
+  let next = state;
+  if (single && isWork) {
+    const w = await lookupWork({ doi: state.dois[0], openalex: state.openalex[0] });
+    if (token !== renderToken) return;
+    if (w) render((next = enrich(state, w)));
+  }
+  const ra = await lookupRegistries(next.dois);
+  if (token !== renderToken || !Object.keys(ra).length) return;
+  render({ ...next, ra });
+}
 
-  const w = await lookupWork({ doi: state.dois[0], openalex: state.openalex[0] });
-  if (token !== renderToken || !w) return;
+function enrich(state, w) {
   const next = { ...state };
   if (w.found) {
     next.title = w.title || state.title;
-    next.author = w.author || state.author;
-    next.year = w.year;
+    if (w.authors.length) next.authors = w.authors;
+    next.year = w.year || state.year;
     if (!next.dois.length && w.doi) next.dois = [w.doi];
     if (!next.openalex.length && w.id) next.openalex = [{ type: 'works', id: w.id }];
     next.text = [...next.dois, ...next.openalex.map((o) => o.id)].join('\n');
@@ -73,7 +85,7 @@ async function show(state) {
   } else if (w.error) {
     next.note = w.error;
   }
-  render(next);
+  return next;
 }
 
 function render(state) {
@@ -82,8 +94,7 @@ function render(state) {
   $('#empty').hidden = !!hasIds || state.source === 'manual';
 
   $('#source').textContent = SOURCE_LABELS[state.source] || '';
-  const title = state.title ? `${state.title}${state.year ? ` (${state.year})` : ''}` : '';
-  $('#title').textContent = [state.author, title].filter(Boolean).join(' — ');
+  $('#title').textContent = citeLine(state);
   $('#note').textContent = state.note || '';
 
   const ids = $('#ids');
@@ -93,7 +104,7 @@ function render(state) {
   );
 
   const groups = new Map();
-  for (const t of targetsFor(state)) {
+  for (const t of targetsFor(state, { ra: state.ra })) {
     if (!groups.has(t.group)) groups.set(t.group, []);
     groups.get(t.group).push(t);
   }

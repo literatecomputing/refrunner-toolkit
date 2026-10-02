@@ -24,7 +24,8 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
   (The smoke test adds `<all_urls>` to its throwaway copy only, because Playwright can't click
   the toolbar button to grant `activeTab`.)
 - **OpenAlex fetches need no permission** because api.openalex.org sends
-  `Access-Control-Allow-Origin: *`. Crossref's API does too, if we ever want lookups there.
+  `Access-Control-Allow-Origin: *`. So does doi.org/ra (registry lookup, batched with commas)
+  and Crossref's API.
 - **Selections are re-read from the page.** `info.selectionText` collapses line breaks, which
   would merge a reference list into one line. `fullSelection()` in background.js calls
   `getSelection()` in the clicked frame and falls back to `selectionText` (PDF viewer,
@@ -40,7 +41,8 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
   citation), not just the DOI.
 - **Context-menu "OpenAlex page" for plain text** falls back to an API search because we don't
   know a stable search URL for the new OpenAlex web UI. Swap in a web URL if one exists.
-- arXiv DOIs (`10.48550/...`) are DataCite, so Crossref search won't find them; OpenAlex and
-  doi.org will.
+- **Registry-aware links.** `doi.org/ra/<DOI>,<DOI>` says who registered each DOI; DataCite DOIs
+  (arXiv, Zenodo, Dryad, datasets) get DataCite links instead of Crossref ones, which would find
+  nothing. Until the lookup answers we assume Crossref, except `10.48550/` (arXiv), always DataCite.
 
 Planned work lives in ROADMAP.md.

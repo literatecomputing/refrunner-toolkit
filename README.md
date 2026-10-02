@@ -3,9 +3,9 @@
 A Chrome extension for getting from an article to its records:
 
 - **Toolbar button** (Alt+Shift+D): finds the DOI or OpenAlex ID for the page you're on and offers
-  the OpenAlex API record, OpenAlex page, Crossref search, Crossref API record, doi.org, and
-  "Send to RefRunner". It shows the work's title and fills in whichever of DOI / OpenAlex ID
-  the page didn't have.
+  the OpenAlex API record and page, the Crossref or DataCite record (whichever registry holds the
+  DOI, per doi.org), doi.org, Google Scholar, and "Send to RefRunner". It shows the work as
+  "Author (year). Title" and fills in whichever of DOI / OpenAlex ID the page didn't have.
 - **Right-click** a selection or a link → *RefRunner Toolkit* → same destinations. Selections can be one
   DOI, several DOIs, an OpenAlex ID, a URL, or whole citations.
 - **Alt+Shift+O** jumps straight to the OpenAlex API record for the current page.

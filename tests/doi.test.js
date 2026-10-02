@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   cleanDoi, findDoiInUrl, arxivDoi, openalexFromUrl, parseText,
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
+  surname, citeLine, registryOf,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -104,12 +105,32 @@ test('RefRunner URLs follow the llms.txt recipe', () => {
 test('targetsFor offers the expected destinations', () => {
   const labels = (p) => targetsFor(p).map((t) => `${t.group}/${t.label}`);
   assert.deepEqual(labels(parseText(PSYCH)), [
-    'OpenAlex/API record', 'Crossref/Search', 'Crossref/API record', 'Resolve/doi.org', 'RefRunner/Send to RefRunner',
+    'OpenAlex/API record', 'Crossref/Search', 'Crossref/API record', 'Resolve/doi.org',
+    'Google Scholar/Search', 'RefRunner/Send to RefRunner',
   ]);
   assert.deepEqual(labels(parseText('https://openalex.org/works/W2974823616')), [
     'OpenAlex/API record', 'OpenAlex/Web page',
   ]);
   assert.deepEqual(labels(parseText('some title words')), [
-    'OpenAlex/API search', 'Crossref/Search', 'RefRunner/Check this text in RefRunner',
+    'OpenAlex/API search', 'Crossref/Search', 'Google Scholar/Search', 'RefRunner/Check this text in RefRunner',
   ]);
+  const groups = (p, ra) => [...new Set(targetsFor(p, { ra }).map((t) => t.group))];
+  // arXiv is DataCite even before doi.org answers; doi.org's answer wins; other registries get no registry links.
+  assert.deepEqual(groups(parseText('10.48550/arXiv.2101.00001')), ['OpenAlex', 'DataCite', 'Resolve', 'Google Scholar', 'RefRunner']);
+  assert.deepEqual(groups(parseText('10.5281/zenodo.123'), { '10.5281/zenodo.123': 'DataCite' })[1], 'DataCite');
+  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['OpenAlex', 'Resolve', 'Google Scholar', 'RefRunner']);
+  assert.equal(registryOf('10.1111/X', { '10.1111/x': 'Crossref' }), 'Crossref');
+});
+
+test('popup heading is APA narrative style', () => {
+  assert.equal(surname('Mary Ann Evans'), 'Evans');
+  assert.equal(surname('Evans, Mary Ann'), 'Evans');
+  assert.equal(surname('Martin Luther King Jr.'), 'King');
+  const title = 'A Title';
+  assert.equal(citeLine({ authors: ['Jo Ivey'], year: 2026, title }), 'Ivey (2026). A Title');
+  assert.equal(citeLine({ authors: ['Jo Ivey', 'Smith, A.'], year: 2026, title }), 'Ivey and Smith (2026). A Title');
+  assert.equal(citeLine({ authors: ['Jo Ivey', 'B', 'C'], year: 2026, title }), 'Ivey et al. (2026). A Title');
+  assert.equal(citeLine({ authors: ['Jo Ivey'], title }), 'Ivey. A Title');
+  assert.equal(citeLine({ year: 2026, title }), 'A Title (2026)');
+  assert.equal(citeLine({}), '');
 });
