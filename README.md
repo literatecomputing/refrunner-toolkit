@@ -43,3 +43,8 @@ npm test          # parser unit tests (no dependencies)
 npm run smoke     # end-to-end in real Chromium; first: npm i -D playwright && npx playwright install chromium
 npm run package   # dist/refrunner-toolkit.zip for the Chrome Web Store
 ```
+
+## License
+
+The code is MIT licensed (see LICENSE). The RefRunner name and logo (`icons/`) are not covered by
+that license; please don't use them for a fork you publish.

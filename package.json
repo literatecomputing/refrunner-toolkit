@@ -2,6 +2,7 @@
   "name": "refrunner-toolkit",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Chrome extension: jump from a DOI or OpenAlex ID to OpenAlex, Crossref, doi.org, or RefRunner.",
   "scripts": {
