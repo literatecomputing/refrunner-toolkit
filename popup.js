@@ -1,5 +1,5 @@
 import { parseText, targetsFor, citeLine } from './lib/doi.js';
-import { detectForTab, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
+import { detectForTab, readSelection, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
 
 const $ = (sel) => document.querySelector(sel);
 const SOURCE_LABELS = {
@@ -8,6 +8,7 @@ const SOURCE_LABELS = {
   meta: 'DOI from the page metadata',
   openalex: 'OpenAlex record',
   manual: 'From what you pasted',
+  selection: 'From your selection',
 };
 
 let tab;
@@ -22,6 +23,10 @@ async function init() {
   $('#groups').addEventListener('click', onLinkClick);
   $('#ids').addEventListener('click', onCopyClick);
   $('#manual').addEventListener('input', debounce(onManualInput, 250));
+
+  // Selected text wins over the page, as it does in the right-click menu.
+  const selection = await readSelection(tab);
+  if (selection) return show((pageState = stateFrom({ ...parseText(selection), source: 'selection' })));
 
   const d = await detectForTab(tab);
   pageState = stateFrom({
@@ -91,7 +96,7 @@ function enrich(state, w) {
 function render(state) {
   const hasIds = state.dois.length || state.openalex.length;
   $('#found').hidden = !hasIds;
-  $('#empty').hidden = !!hasIds || state.source === 'manual';
+  $('#empty').hidden = !!hasIds || ['manual', 'selection'].includes(state.source);
 
   $('#source').textContent = SOURCE_LABELS[state.source] || '';
   $('#title').textContent = citeLine(state);

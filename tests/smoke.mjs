@@ -90,13 +90,18 @@ await page.evaluate(() => {
   getSelection().addRange(r);
 });
 const tabId = await helper.evaluate(async () => (await chrome.tabs.query({ url: 'http://localhost:8765/doi/*' }))[0].id);
+const sel = await helper.evaluate(async (tabId) => {
+  const { readSelection } = await import('./lib/chrome.js');
+  return readSelection(await chrome.tabs.get(tabId));
+}, tabId);
+ok(sel.includes('One.\nJones'), `popup's selection reader keeps line breaks: ${JSON.stringify(sel.slice(0, 60))}`);
 const newPage = ctx.waitForEvent('page');
 await sw.evaluate(async (tabId) => {
   const tab = await chrome.tabs.get(tabId);
   await __test.handleMenu({ menuItemId: 'refrunner', selectionText: 'Smith, J. (2005). One. Jones (flattened)', frameId: 0 }, tab);
 }, tabId);
 let p2 = await newPage;
-ok(p2.url().includes('#refs=Smith%2C%20J.%20(2005).%20One.%0AJones'), `RefRunner refs link keeps line break: ${p2.url().slice(0, 140)}`);
+ok(p2.url().includes('#refs=Smith%2C+J.+%282005%29.+One.%0AJones'), `RefRunner refs link keeps line break: ${p2.url().slice(0, 140)}`);
 await p2.close();
 
 // 4. menu handler: selected DOI -> OpenAlex page via lookup

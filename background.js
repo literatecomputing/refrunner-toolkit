@@ -3,7 +3,7 @@ import {
   parseText, oaApiUrl, oaWebUrl, oaApiDoiUrl, oaSearchUrl, crossrefSearchUrl, doiOrgUrl, refrunnerUrl,
   datacitePageUrl, scholarUrl, registryOf,
 } from './lib/doi.js';
-import { detectForTab, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
+import { detectForTab, readSelection, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
 
 const MAX_TABS = 5;
 const CONTEXTS = ['selection', 'link'];
@@ -123,18 +123,7 @@ async function doisFromOpenAlex(p) {
  * list into one line. Re-read the selection from the page when we can.
  */
 async function fullSelection(info, tab) {
-  if (tab?.id >= 0) {
-    try {
-      const [res] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id, frameIds: [info.frameId ?? 0] },
-        func: () => String(window.getSelection() || ''),
-      });
-      if (res?.result?.trim()) return res.result;
-    } catch {
-      // PDF viewer, chrome:// pages, text inside <input>/<textarea>, etc.
-    }
-  }
-  return info.selectionText || '';
+  return (await readSelection(tab, info.frameId ?? 0)) || info.selectionText || '';
 }
 
 function flash(tab, text) {
