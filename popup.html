@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RefRunner Toolkit</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>
+    body { width: 360px; }
+    header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+    }
+    header img { width: 18px; height: 18px; }
+    header h1 { flex: 1; margin: 0; font-size: 14px; }
+    header a { font-size: 12px; text-decoration: none; }
+    main { padding: 12px; display: grid; gap: 12px; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+    .source { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+    .title { font-weight: 600; margin-bottom: 6px;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .title:empty { display: none; }
+    .id-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .id-row .label { color: var(--muted); font-size: 11px; width: 34px; flex: none; }
+    .id-row .mono { flex: 1; }
+    .copy { border: 0; background: none; color: var(--accent); cursor: pointer; font-size: 11px; padding: 2px 4px; }
+    .note { font-size: 12px; color: var(--warn); margin-top: 6px; }
+    .note:empty { display: none; }
+
+    .groups { display: grid; gap: 10px; }
+    .group h2 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    .links { display: flex; flex-wrap: wrap; gap: 6px; }
+    .links .btn { padding: 5px 10px; font-size: 12px; }
+    .refrunner .btn { width: 100%; }
+
+    .empty { color: var(--muted); }
+    label.manual { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="icons/32.png" alt="">
+    <h1>RefRunner Toolkit</h1>
+  </header>
+  <main>
+    <section class="card" id="found" hidden>
+      <div class="source" id="source"></div>
+      <div class="title" id="title"></div>
+      <div id="ids"></div>
+      <div class="note" id="note"></div>
+    </section>
+    <p class="empty" id="empty" hidden>No DOI or OpenAlex ID found on this page.</p>
+    <div class="groups" id="groups"></div>
+    <label class="manual">
+      Or paste a DOI, OpenAlex ID, URL, or citation
+      <input type="text" id="manual" placeholder="10.1111/j.1467-9280.2005.01636.x" autocomplete="off" spellcheck="false">
+    </label>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
