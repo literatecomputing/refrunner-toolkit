@@ -20,6 +20,10 @@
     "openalex-api": {
       "suggested_key": { "default": "Alt+Shift+O" },
       "description": "Open the OpenAlex API record for this page"
+    },
+    "send-refrunner": {
+      "suggested_key": { "default": "Alt+Shift+R" },
+      "description": "Send the selection, or this page's DOI, to RefRunner"
     }
   }
 }

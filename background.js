@@ -32,15 +32,24 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.commands.onCommand.addListener((command, tab) => {
-  if (command !== 'openalex-api') return;
-  handleShortcut(tab).catch((err) => {
+  handleShortcut(command, tab).catch((err) => {
     console.error('RefRunner Toolkit:', err);
     flash(tab, '!');
   });
 });
 
-async function handleShortcut(tab) {
+async function handleShortcut(command, tab) {
   tab ||= (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+  if (command === 'send-refrunner') {
+    // Selection first, as in the popup; otherwise the page's DOI or OpenAlex id.
+    let text = await readSelection(tab);
+    if (!text) {
+      const d = await detectForTab(tab);
+      text = d.doi || d.openalex?.id || '';
+    }
+    return sendToRefRunner(parseText(text), tab);
+  }
+  if (command !== 'openalex-api') return;
   const d = await detectForTab(tab);
   const url = d.openalex ? oaApiUrl(d.openalex) : d.doi ? oaApiDoiUrl([d.doi]) : null;
   if (!url) return flash(tab, '?');
