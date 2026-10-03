@@ -27,8 +27,10 @@ Only what is needed for the action you chose:
 - **RefRunner** (www.refrunner.com): the references or DOIs you send to it. Reference text travels
   in the part of the link after `#`, which stays in your browser and is not sent to RefRunner's
   servers. If a RefRunner tab is already open, the extension hands the references to that tab.
-- **Links you click** (OpenAlex, Crossref, DataCite, doi.org, Google Scholar) open in a new tab with
-  the DOI or text in the address, exactly as if you had typed it.
+- **Links you click** (OpenAlex, Crossref, DataCite, doi.org, Google Scholar, Semantic Scholar,
+  Google, PubMed, Europe PMC, Wikidata, OpenCitations, JSTOR, ERIC, the Library of Congress, Open
+  Library, Google Books, ResearchGate) open in a new tab with the DOI or text in the address,
+  exactly as if you had typed it there. The extension contacts none of them on its own.
 
 ## What it stores
 
