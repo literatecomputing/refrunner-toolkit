@@ -116,7 +116,7 @@ test('targetsFor offers the expected destinations', () => {
     'Metadata sources/OpenAlex API', 'Metadata sources/OpenAlex',
   ]);
   assert.deepEqual(labels(parseText('some title words')), [
-    'Search/Crossref', 'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google',
+    'Search/Crossref', 'Search/OpenAlex', 'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google',
     'Search/JSTOR', 'Search/ERIC', 'Search/Library of Congress', 'Search/Open Library',
     'Search/Google Books', 'Search/ResearchGate',
     'API/OpenAlex', 'API/Semantic Scholar', 'API/ERIC', 'API/Library of Congress',

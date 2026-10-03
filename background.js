@@ -1,6 +1,6 @@
 // Service worker: right-click menu and keyboard shortcut.
 import {
-  parseText, oaApiUrl, oaWebUrl, oaApiDoiUrl, oaSearchUrl, crossrefSearchUrl, doiOrgUrl, refrunnerUrl,
+  parseText, oaApiUrl, oaWebUrl, oaApiDoiUrl, oaSearchUrl, oaWebSearchUrl, crossrefSearchUrl, doiOrgUrl, refrunnerUrl,
   datacitePageUrl, scholarUrl, registryOf, moreSearches, doiSearches,
 } from './lib/doi.js';
 import {
@@ -100,8 +100,8 @@ async function destinations(action, p) {
         const w = await lookupWork({ doi });
         if (w?.found && w.id) out.push(`https://openalex.org/works/${w.id}`);
       }
-      // No known web-UI search URL, so plain text falls back to an API search.
-      if (!out.length && !p.dois.length && p.text) out.push(oaSearchUrl(p.text));
+      // Plain text: the web UI's own search.
+      if (!out.length && !p.dois.length && p.text) out.push(oaWebSearchUrl(p.leftover || p.text));
       return out;
     }
     case 'crossref': {

@@ -44,8 +44,8 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
 - **parseText decides "ids only" vs "citation text".** If anything besides identifiers and
   separators is selected, RefRunner gets the full text via `#refs=` (so it verifies the whole
   citation), not just the DOI.
-- **Context-menu "OpenAlex page" for plain text** falls back to an API search because we don't
-  know a stable search URL for the new OpenAlex web UI. Swap in a web URL if one exists.
+- **OpenAlex web search** is `openalex.org/works?search=<text>` (checked Oct 2026): the popup's
+  Search section and the context menu's "OpenAlex page" for plain text use it.
 - **Registry-aware links.** `doi.org/ra/<DOI>,<DOI>` says who registered each DOI; DataCite DOIs
   (arXiv, Zenodo, Dryad, datasets) get DataCite links instead of Crossref ones, which would find
   nothing. Until the lookup answers we assume Crossref, except `10.48550/` (arXiv), always DataCite.
