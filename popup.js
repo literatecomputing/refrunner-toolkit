@@ -213,14 +213,25 @@ async function showShortcuts() {
 
 function setUpDevToggle() {
   const box = $('#dev-server');
+  const access = $('#dev-access');
+  const origins = [`${REFRUNNER_DEV_BASE}/*`];
+  // Reaching an open dev-server tab needs host access (optional in the manifest, so store
+  // installs never see "localhost"). Asked for on ticking the box, and offered whenever the
+  // box is on without it — a box ticked before this existed never asked. Declined: new tabs.
+  const showAccess = async () => {
+    access.hidden = !box.checked || (await chrome.permissions.contains({ origins }));
+  };
+  const ask = () => chrome.permissions.request({ origins }).catch(() => false).then(showAccess);
   box.checked = base === REFRUNNER_DEV_BASE;
   $('#dev-label').hidden = false;
+  showAccess();
+  access.addEventListener('click', (e) => {
+    e.preventDefault();
+    ask();
+  });
   box.addEventListener('change', async () => {
-    // Reaching an open dev-server tab needs host access, asked for once (optional in the
-    // manifest, so store installs never see "localhost"). Declined: links still work.
-    if (box.checked) {
-      await chrome.permissions.request({ origins: [`${REFRUNNER_DEV_BASE}/*`] }).catch(() => false);
-    }
+    if (box.checked) await ask();
+    else await showAccess();
     await chrome.storage.local.set({ useDevServer: box.checked });
     base = await refrunnerBase();
     if (shown) render(shown);
