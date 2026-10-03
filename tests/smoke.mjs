@@ -144,7 +144,11 @@ ok(ui.title === 'Author and Second (2004). Mocked OpenAlex Title', `popup shows 
 
 // Records: logo buttons on one line, logos loaded
 await popup.fill('#manual', '10.1111/j.1467-9280.2005.01636.x');
-await popup.waitForFunction(() => document.querySelectorAll('#groups .src-logo').length >= 3, null, { timeout: 10000 }).catch(() => {});
+await popup.waitForFunction(
+  () => document.querySelector('#ids .mono')?.textContent === '10.1111/j.1467-9280.2005.01636.x'
+    && document.querySelectorAll('#groups .src-logo').length >= 4,
+  null, { timeout: 10000 },
+).catch(() => {});
 const rec = await popup.evaluate(() => {
   const row = [...document.querySelectorAll('#groups section')].find((s) => s.querySelector('.src-logo'))?.querySelector('.links');
   const btns = [...(row?.querySelectorAll('.btn') || [])];
@@ -156,6 +160,8 @@ const rec = await popup.evaluate(() => {
 });
 // The mocked OpenAlex lookup adds the W-id, so the full row: OA API, OA page, Crossref search, API.
 ok(rec.texts.join('|') === 'API|Page|Search|API' && rec.tops === 1 && rec.loaded, `Records row: logos, one line ${JSON.stringify(rec)}`);
+const open = await popup.evaluate(() => ({ hidden: document.getElementById('open-doi').hidden, href: document.getElementById('open-doi').href }));
+ok(!open.hidden && open.href === 'https://doi.org/10.1111/j.1467-9280.2005.01636.x', `Open on the title line goes to doi.org ${JSON.stringify(open)}`);
 
 // Enter in the paste box sends it to RefRunner (no RefRunner tab open, so a new one)
 const sent = ctx.waitForEvent('page');

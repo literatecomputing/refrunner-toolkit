@@ -1,4 +1,4 @@
-import { parseText, targetsFor, citeLine, REFRUNNER_DEV_BASE } from './lib/doi.js';
+import { parseText, targetsFor, citeLine, doiOrgUrl, REFRUNNER_DEV_BASE } from './lib/doi.js';
 import {
   detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupRegistries, openTab, openOverflow, handToOpenTab,
 } from './lib/chrome.js';
@@ -25,6 +25,7 @@ async function init() {
   [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   $('#groups').addEventListener('click', onLinkClick);
+  $('#open-doi').addEventListener('click', onLinkClick);
   $('#ids').addEventListener('click', onCopyClick);
   $('#manual').addEventListener('input', debounce(onManualInput, 250));
   // Enter in the paste box sends what's there to RefRunner, without waiting for the debounce.
@@ -116,6 +117,14 @@ function render(state) {
   $('#source').textContent = SOURCE_LABELS[state.source] || '';
   $('#title').textContent = citeLine(state);
   $('#note').textContent = state.note || '';
+
+  // The DOI itself, at doi.org: one link on the title line rather than a section of its own.
+  const open = $('#open-doi');
+  open.hidden = !state.dois.length;
+  if (state.dois.length) {
+    open.href = doiOrgUrl(state.dois[0]);
+    open.title = `Open ${state.dois[0]} at doi.org`;
+  }
 
   const ids = $('#ids');
   ids.replaceChildren(

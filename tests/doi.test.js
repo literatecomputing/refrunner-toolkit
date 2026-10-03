@@ -105,7 +105,7 @@ test('RefRunner URLs follow the llms.txt recipe', () => {
 test('targetsFor offers the expected destinations', () => {
   const labels = (p, ra) => targetsFor(p, { ra }).map((t) => `${t.group}/${t.label}`);
   assert.deepEqual(labels(parseText(PSYCH)), [
-    'Records/OpenAlex API', 'Records/Crossref search', 'Records/Crossref API', 'Resolve/doi.org',
+    'Records/OpenAlex API', 'Records/Crossref search', 'Records/Crossref API',
     'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google', 'Search/PubMed',
     'Search/Europe PMC', 'Search/Wikidata',
     'API/Semantic Scholar', 'API/PubMed', 'API/Europe PMC', 'API/Wikidata',
@@ -129,7 +129,7 @@ test('targetsFor offers the expected destinations', () => {
     'Records/OpenAlex API', 'Records/DataCite', 'Records/DataCite API',
   ]);
   assert.ok(labels(parseText('10.5281/zenodo.123'), { '10.5281/zenodo.123': 'DataCite' }).includes('Records/DataCite'));
-  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['Records', 'Resolve', 'Search', 'API', 'RefRunner']);
+  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['Records', 'Search', 'API', 'RefRunner']);
   assert.equal(registryOf('10.1111/X', { '10.1111/x': 'Crossref' }), 'Crossref');
 });
 
