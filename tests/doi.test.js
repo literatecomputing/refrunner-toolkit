@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   cleanDoi, findDoiInUrl, arxivDoi, openalexFromUrl, parseText,
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
-  surname, citeLine, registryOf,
+  surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -106,20 +106,35 @@ test('targetsFor offers the expected destinations', () => {
   const labels = (p) => targetsFor(p).map((t) => `${t.group}/${t.label}`);
   assert.deepEqual(labels(parseText(PSYCH)), [
     'OpenAlex/API record', 'Crossref/Search', 'Crossref/API record', 'Resolve/doi.org',
-    'Google Scholar/Search', 'RefRunner/Send to RefRunner',
+    'Google Scholar/Search', 'More searches/Semantic Scholar API', 'RefRunner/Send to RefRunner',
   ]);
   assert.deepEqual(labels(parseText('https://openalex.org/works/W2974823616')), [
     'OpenAlex/API record', 'OpenAlex/Web page',
   ]);
   assert.deepEqual(labels(parseText('some title words')), [
-    'OpenAlex/API search', 'Crossref/Search', 'Google Scholar/Search', 'RefRunner/Check this text in RefRunner',
+    'OpenAlex/API search', 'Crossref/Search', 'Google Scholar/Search',
+    'More searches/Semantic Scholar', 'More searches/Semantic Scholar API', 'More searches/Google',
+    'More searches/JSTOR', 'More searches/ERIC', 'More searches/ERIC API',
+    'More searches/Library of Congress', 'More searches/Library of Congress API',
+    'More searches/Open Library', 'More searches/Open Library API',
+    'More searches/Google Books', 'More searches/Google Books API', 'More searches/ResearchGate',
+    'RefRunner/Check this text in RefRunner',
   ]);
   const groups = (p, ra) => [...new Set(targetsFor(p, { ra }).map((t) => t.group))];
   // arXiv is DataCite even before doi.org answers; doi.org's answer wins; other registries get no registry links.
-  assert.deepEqual(groups(parseText('10.48550/arXiv.2101.00001')), ['OpenAlex', 'DataCite', 'Resolve', 'Google Scholar', 'RefRunner']);
+  assert.deepEqual(groups(parseText('10.48550/arXiv.2101.00001')), ['OpenAlex', 'DataCite', 'Resolve', 'Google Scholar', 'More searches', 'RefRunner']);
   assert.deepEqual(groups(parseText('10.5281/zenodo.123'), { '10.5281/zenodo.123': 'DataCite' })[1], 'DataCite');
-  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['OpenAlex', 'Resolve', 'Google Scholar', 'RefRunner']);
+  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['OpenAlex', 'Resolve', 'Google Scholar', 'More searches', 'RefRunner']);
   assert.equal(registryOf('10.1111/X', { '10.1111/x': 'Crossref' }), 'Crossref');
+});
+
+test('moreSearches builds each page and API URL from the query', () => {
+  const s = Object.fromEntries(moreSearches('Lester  (2019)\ndiscursive').map((m) => [m.label, m]));
+  assert.equal(s['Semantic Scholar'].url, 'https://www.semanticscholar.org/search?q=Lester%20(2019)%20discursive');
+  assert.match(s['Semantic Scholar'].api, /^https:\/\/api\.semanticscholar\.org\/graph\/v1\/paper\/search\?query=Lester%20/);
+  assert.equal(s['Library of Congress'].api, 'https://www.loc.gov/books/?q=Lester%20(2019)%20discursive&fo=json');
+  assert.equal(s.Google.api, null);
+  assert.equal(s2ApiDoiUrl(PSYCH).split('?')[0], `https://api.semanticscholar.org/graph/v1/paper/DOI:${PSYCH}`);
 });
 
 test('popup heading is APA narrative style', () => {

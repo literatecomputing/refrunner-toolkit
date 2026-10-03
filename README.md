@@ -7,6 +7,11 @@ A Chrome extension for getting from an article to its records:
   the OpenAlex API record and page, the Crossref or DataCite record (whichever registry holds the
   DOI, per doi.org), doi.org, Google Scholar, and "Send to RefRunner". It shows the work as
   "Author (year). Title" and fills in whichever of DOI / OpenAlex ID the page didn't have.
+- **More searches**, for text: the other places RefRunner suggests when it can't find a
+  reference — Semantic Scholar, Google, JSTOR, ERIC, Library of Congress, Open Library, Google
+  Books, ResearchGate — each with a link to its raw API results where it has a public one. (The
+  keyless Semantic Scholar and Google Books APIs are rate-limited and sometimes answer 429.)
+  A DOI gets its Semantic Scholar API record.
 - **Right-click** a selection or a link → *RefRunner Toolkit* → same destinations. Selections can be one
   DOI, several DOIs, an OpenAlex ID, a URL, or whole citations.
 - **Alt+Shift+O** jumps straight to the OpenAlex API record for the current page.

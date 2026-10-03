@@ -1,7 +1,7 @@
 // Service worker: right-click menu and keyboard shortcut.
 import {
   parseText, oaApiUrl, oaWebUrl, oaApiDoiUrl, oaSearchUrl, crossrefSearchUrl, doiOrgUrl, refrunnerUrl,
-  datacitePageUrl, scholarUrl, registryOf,
+  datacitePageUrl, scholarUrl, registryOf, moreSearches,
 } from './lib/doi.js';
 import {
   detectForTab, readSelection, refrunnerBase, lookupWork, lookupRegistries, openTab, openOverflow, handToOpenTab,
@@ -15,14 +15,20 @@ const ITEMS = [
   { id: 'crossref', title: 'Crossref / DataCite' },
   { id: 'doi-org', title: 'Open at doi.org' },
   { id: 'scholar', title: 'Google Scholar' },
+  { id: 'more', title: 'More searches' },
   { id: 'sep-1', type: 'separator' },
   { id: 'refrunner', title: 'Send to RefRunner' },
 ];
+// Submenu of 'more': the searches RefRunner suggests for a reference it can't find.
+const MORE = moreSearches('').map((s) => s.label);
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({ id: 'root', title: 'RefRunner Toolkit', contexts: CONTEXTS });
     for (const item of ITEMS) chrome.contextMenus.create({ ...item, parentId: 'root', contexts: CONTEXTS });
+    for (const label of MORE) {
+      chrome.contextMenus.create({ id: `more:${label}`, title: label, parentId: 'more', contexts: CONTEXTS });
+    }
   });
 });
 
@@ -72,6 +78,12 @@ async function handleMenu(info, tab) {
 }
 
 async function destinations(action, p) {
+  if (action.startsWith('more:')) {
+    // A selection of DOIs is searched as the DOIs; anything else as its words.
+    const q = p.onlyIds ? p.dois.join(' ') : p.leftover || p.text;
+    const s = q && moreSearches(q).find((m) => `more:${m.label}` === action);
+    return s ? [s.url] : [];
+  }
   const needDois = action === 'crossref' || action === 'doi-org' || action === 'scholar';
   const dois = p.dois.length || !needDois ? p.dois : await doisFromOpenAlex(p);
   switch (action) {
