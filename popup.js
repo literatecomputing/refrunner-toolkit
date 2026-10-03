@@ -1,5 +1,7 @@
 import { parseText, targetsFor, citeLine, REFRUNNER_DEV_BASE } from './lib/doi.js';
-import { detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
+import {
+  detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupRegistries, openTab, openOverflow, handToOpenTab,
+} from './lib/chrome.js';
 
 const $ = (sel) => document.querySelector(sel);
 const SOURCE_LABELS = {
@@ -147,6 +149,7 @@ function groupEl(name, items) {
       a.dataset.overflow = '1';
       a.dataset.refs = t.refs;
     }
+    if (t.handoff) a.dataset.handoff = t.handoff;
     links.append(a);
   }
   g.append(links);
@@ -158,6 +161,10 @@ async function onLinkClick(e) {
   if (!a) return;
   e.preventDefault();
   const keepOpen = e.ctrlKey || e.metaKey || e.button === 1;
+  // An open RefRunner tab takes it, unless a new tab was asked for (Ctrl/middle-click).
+  if (a.dataset.handoff && !keepOpen && (await handToOpenTab(base, a.dataset.handoff))) {
+    return window.close();
+  }
   if (a.dataset.overflow) {
     await openOverflow(a.dataset.refs, a.href, tab);
     return window.close();
@@ -209,6 +216,11 @@ function setUpDevToggle() {
   box.checked = base === REFRUNNER_DEV_BASE;
   $('#dev-label').hidden = false;
   box.addEventListener('change', async () => {
+    // Reaching an open dev-server tab needs host access, asked for once (optional in the
+    // manifest, so store installs never see "localhost"). Declined: links still work.
+    if (box.checked) {
+      await chrome.permissions.request({ origins: [`${REFRUNNER_DEV_BASE}/*`] }).catch(() => false);
+    }
     await chrome.storage.local.set({ useDevServer: box.checked });
     base = await refrunnerBase();
     if (shown) render(shown);

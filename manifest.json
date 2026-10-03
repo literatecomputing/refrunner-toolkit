@@ -5,6 +5,8 @@
   "description": "Check a selected reference list in RefRunner, or jump from a page's DOI or OpenAlex ID to OpenAlex, Crossref, DataCite, and Scholar.",
   "minimum_chrome_version": "116",
   "permissions": ["activeTab", "scripting", "contextMenus", "storage"],
+  "host_permissions": ["https://www.refrunner.com/*"],
+  "optional_host_permissions": ["https://localhost:5173/*"],
   "background": { "service_worker": "background.js", "type": "module" },
   "action": {
     "default_popup": "popup.html",

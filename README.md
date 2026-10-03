@@ -12,6 +12,10 @@ A Chrome extension for getting from an article to its records:
 - **Alt+Shift+O** jumps straight to the OpenAlex API record for the current page.
 - **Alt+Shift+C** ("check") sends the selection (or, with nothing selected, the page's DOI) straight to RefRunner.
 
+If a RefRunner tab is already open, what you send goes there instead of a new tab: references join
+that tab's list, and a name, title or keywords land in its Live Search. A list too long for a link
+needs no copying then. Ctrl/Cmd-click or middle-click a popup link for a new tab anyway.
+
 ## Install (unpacked)
 
 1. Open `chrome://extensions` and turn on **Developer mode**.
@@ -36,7 +40,8 @@ directly; authors, sources, institutions etc. work too.
 
 None. RefRunner picks the citation style. Unpacked (development) installs show a "Send to dev
 server" checkbox in the popup footer that points RefRunner links at `https://localhost:5173`; it's
-hidden in Web Store installs. Ctrl/Cmd-click or middle-click a popup link to open it in
+hidden in Web Store installs. Ticking it asks once for access to localhost, so sends can reach an
+open dev-server tab; decline and they open new tabs. Ctrl/Cmd-click or middle-click a popup link to open it in
 the background and keep the popup open.
 
 ## Development

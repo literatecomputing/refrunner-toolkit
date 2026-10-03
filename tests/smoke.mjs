@@ -19,6 +19,12 @@ fs.mkdirSync(path.join(SP, 'site/doi/10.1111'), { recursive: true });
 fs.mkdirSync(path.join(SP, 'site/article'), { recursive: true });
 fs.writeFileSync(path.join(SP, 'site/doi/10.1111/j.1467-9280.2005.01636.x'),
   '<!doctype html><p id="p">Smith, J. (2005). One.<br>Jones, K. (2006). Two. https://doi.org/10.1037/0003-066X.59.1.29</p>');
+// Stand-ins for an open RefRunner tab: one listening (marked), one on an older build (not).
+fs.mkdirSync(path.join(SP, 'site/rr'), { recursive: true });
+fs.mkdirSync(path.join(SP, 'site/old'), { recursive: true });
+fs.writeFileSync(path.join(SP, 'site/rr/index.html'),
+  '<!doctype html><html data-refrunner-handoff="1"><script>window.got=[];addEventListener("message",(e)=>e.data?.type==="refrunner-import"&&got.push(e.data.text))</script></html>');
+fs.writeFileSync(path.join(SP, 'site/old/index.html'), '<!doctype html><p>old build</p>');
 fs.writeFileSync(path.join(SP, 'site/article/index.html'),
   '<!doctype html><meta name="citation_doi" content="10.1126/science.abc1234"><meta name="citation_title" content="Meta Title"><p>no doi in url</p>');
 
@@ -157,6 +163,22 @@ await helper.evaluate(async (big) => {
 const ov = await op;
 await ov.waitForFunction(() => document.getElementById('refs').value.length > 0);
 ok((await ov.inputValue('#refs')).length === big.length, 'overflow page shows the full list');
+
+// 7. hand-off to an open RefRunner tab, at any length; a tab without the app's mark is left alone
+const rr = await ctx.newPage();
+await rr.goto('http://localhost:8765/rr/');
+const old = await ctx.newPage();
+await old.goto('http://localhost:8765/old/');
+const handed = await helper.evaluate(async (big) => {
+  const { handToOpenTab } = await import('./lib/chrome.js');
+  return {
+    rr: await handToOpenTab('http://localhost:8765/rr', big),
+    old: await handToOpenTab('http://localhost:8765/old', 'Lester (2019)'),
+  };
+}, big);
+const got = await rr.evaluate(() => window.got);
+ok(handed.rr && got.length === 1 && got[0] === big, 'open tab receives the full text');
+ok(handed.old === false, 'a tab without the hand-off mark falls back to a new tab');
 
 console.log(errors.length ? 'ERRORS:\n' + errors.join('\n') : 'no console errors');
 await ctx.close();

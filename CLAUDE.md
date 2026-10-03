@@ -6,7 +6,7 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
 
 | File | Role |
 |---|---|
-| `manifest.json` | MV3. Permissions: `activeTab`, `scripting`, `contextMenus`, `storage` (only for the dev-server checkbox). No host permissions. |
+| `manifest.json` | MV3. Permissions: `activeTab`, `scripting`, `contextMenus`, `storage` (only for the dev-server checkbox). Host permission for www.refrunner.com only; localhost:5173 optional. |
 | `lib/doi.js` | **Pure** parsing and URL building. No `chrome.*` here so it stays unit-testable in Node. |
 | `lib/chrome.js` | Page detection (injects a meta-tag reader), OpenAlex lookup, tab opening. |
 | `background.js` | Service worker (ES module): context menu and `openalex-api` shortcut. |
@@ -18,9 +18,14 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
 
 ## Decisions worth keeping
 
-- **No host permissions.** Everything rides on `activeTab`, which Chrome grants when the user clicks
-  the button, uses a context-menu item, or presses a shortcut. That keeps the install prompt
-  free of "read and change all your data". Don't add `host_permissions` without a strong reason.
+- **One host permission: www.refrunner.com.** Everything else rides on `activeTab`, which Chrome
+  grants when the user clicks the button, uses a context-menu item, or presses a shortcut, so the
+  install prompt never says "read and change all your data". The RefRunner permission (Oct 2026)
+  lets a send go to a RefRunner tab that is already open (`handToOpenTab`): it posts
+  `{ type: "refrunner-import", text }` to the tab, which the app takes if it has marked
+  `<html data-refrunner-handoff="1">`; otherwise a new tab opens as before. The dev server
+  (`https://localhost:5173`) is an `optional_host_permissions` entry that the dev checkbox requests,
+  so store installs never list localhost. Don't add other hosts without a strong reason.
   (The smoke test adds `<all_urls>` to its throwaway copy only, because Playwright can't click
   the toolbar button to grant `activeTab`.)
 - **OpenAlex fetches need no permission** because api.openalex.org sends
