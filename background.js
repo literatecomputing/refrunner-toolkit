@@ -2,10 +2,10 @@
 import {
   parseText, oaApiUrl, oaWebUrl, oaApiDoiUrl, oaSearchUrl, oaWebSearchUrl, crossrefSearchUrl, doiOrgUrl, refrunnerUrl,
   datacitePageUrl, scholarUrl, registryOf, moreSearches, doiSearches,
-  bookCitation,
+  recordCitation,
 } from './lib/doi.js';
 import {
-  detectForTab, readSelection, refrunnerBase, lookupWork, lookupBook, lookupRegistries, openTab, openOverflow, handToOpenTab,
+  detectForTab, readSelection, refrunnerBase, lookupWork, lookupCatalog, lookupRegistries, openTab, openOverflow, handToOpenTab,
 } from './lib/chrome.js';
 
 const MAX_TABS = 5;
@@ -55,9 +55,9 @@ async function handleShortcut(command, tab) {
     if (!text) {
       const d = await detectForTab(tab);
       text = d.doi || d.openalex?.id || '';
-      if (!text && d.openlibrary) {
-        const book = await lookupBook(d.openlibrary);
-        if (book.found) text = bookCitation(book);
+      if (!text && d.catalog) {
+        const r = await lookupCatalog(d.catalog);
+        if (r.found) text = r.doi || recordCitation(r);
       }
     }
     return sendToRefRunner(parseText(text), tab);

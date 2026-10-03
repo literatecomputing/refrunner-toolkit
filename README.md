@@ -45,9 +45,10 @@ the next open; background changes need the reload).
 OpenAlex pages (`openalex.org/works/W…`, `api.openalex.org/w…`, `?zoom=w…`) give the W-id
 directly; authors, sources, institutions etc. work too.
 
-Open Library edition pages (`openlibrary.org/books/OL…M`) are looked up in Open Library's Books
-API and turned into a citation (authors, year, title, publisher, ISBN), which goes to RefRunner
-and to the catalog searches.
+Catalog record pages are looked up in the catalog's API: Open Library editions
+(`openlibrary.org/books/OL…M`) and ERIC records (`eric.ed.gov/?id=ED…` or `EJ…`). A record with a
+DOI is then handled like an article page; otherwise it becomes a citation (authors, year, title,
+journal or publisher, ISBN), which goes to RefRunner and to the catalog searches.
 
 ## Settings
 

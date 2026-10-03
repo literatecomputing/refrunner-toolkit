@@ -28,7 +28,7 @@ CHECK REFERENCES
 
 JUMP FROM ANY ARTICLE
 • Finds the DOI from the page address or the publisher's metadata tags (works on most journal sites, including ones whose URLs don't show the DOI), and arXiv IDs.
-• On an Open Library book page, builds the book's citation (authors, year, title, publisher, ISBN) to check in RefRunner or search library catalogs.
+• On an Open Library book page or an ERIC record, builds the citation (authors, year, title, publisher, ISBN), or uses the record's DOI, to check in RefRunner or search library catalogs.
 • Shows the work as "Author (year). Title", with its DOI and OpenAlex ID ready to copy and an Open button for doi.org.
 • Metadata sources: the OpenAlex record and page, and the Crossref or DataCite record (whichever registered the DOI, so arXiv preprints and datasets go to DataCite).
 • Search the DOI or citation in Google Scholar, Semantic Scholar, Google, PubMed, Europe PMC, Wikidata, JSTOR, ERIC, the Library of Congress, Open Library, Google Books, and ResearchGate, with the matching API records one click away.
@@ -75,7 +75,7 @@ Help researchers check and look up scholarly references: send selected citations
 development checkbox. Store users are never asked for it. If the form asks about it, say so.)
 
 **Remote code:** No, I am not using remote code. (All JavaScript ships in the package; the
-extension only fetches JSON data from api.openalex.org, doi.org, and openlibrary.org.)
+extension only fetches JSON data from api.openalex.org, doi.org, openlibrary.org, and api.ies.ed.gov (ERIC).)
 
 **Data usage:** tick **Website content** only. The extension reads the selected text and
 citation metadata of the page the user acts on, and sends identifiers and text the user chose

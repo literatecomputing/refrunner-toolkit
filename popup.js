@@ -1,6 +1,6 @@
-import { parseText, targetsFor, citeLine, doiOrgUrl, bookCitation, REFRUNNER_DEV_BASE } from './lib/doi.js';
+import { parseText, targetsFor, citeLine, doiOrgUrl, recordCitation, CATALOGS, REFRUNNER_DEV_BASE } from './lib/doi.js';
 import {
-  detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupBook, lookupRegistries, openTab, openOverflow, handToOpenTab,
+  detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupCatalog, lookupRegistries, openTab, openOverflow, handToOpenTab,
 } from './lib/chrome.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -10,6 +10,7 @@ const SOURCE_LABELS = {
   meta: 'DOI from the page metadata',
   openalex: 'OpenAlex record',
   openlibrary: 'Open Library edition',
+  eric: 'ERIC record',
   manual: 'From what you pasted',
   selection: 'From your selection',
 };
@@ -48,7 +49,7 @@ async function init() {
   pageState = stateFrom({
     dois: d.doi ? [d.doi] : [],
     openalex: d.openalex ? [d.openalex] : [],
-    openlibrary: d.openlibrary,
+    catalog: d.catalog,
     source: d.source,
     title: d.title,
     authors: d.authors,
@@ -56,12 +57,12 @@ async function init() {
   });
   show(pageState);
   // A book's citation (and its RefRunner button) arrives after the lookup; let that take focus.
-  if (!$('#groups .refrunner .btn') && !pageState.openlibrary) $('#manual').focus();
+  if (!$('#groups .refrunner .btn') && !pageState.catalog) $('#manual').focus();
 }
 
-function stateFrom({ dois = [], openalex = [], openlibrary = null, source = null, title = null, authors = [], year = null, text, leftover = '', onlyIds = true }) {
+function stateFrom({ dois = [], openalex = [], catalog = null, source = null, title = null, authors = [], year = null, text, leftover = '', onlyIds = true }) {
   return {
-    dois, openalex, openlibrary, isbn: '', source, title, authors, year, leftover, onlyIds,
+    dois, openalex, catalog, isbn: '', source, title, authors, year, leftover, onlyIds,
     text: text ?? [...dois, ...openalex.map((o) => o.id)].join('\n'),
     note: '', ra: {},
   };
@@ -81,29 +82,34 @@ function onManualInput(e) {
 async function show(state) {
   const token = ++renderToken;
   render(state);
+  let next = state;
+  // A catalog record (Open Library, ERIC): with a DOI it's handled like an article page;
+  // otherwise its record becomes a citation, so it gets the catalog searches (by title) and
+  // RefRunner checks the whole reference.
+  if (state.catalog && !state.dois.length) {
+    const r = await lookupCatalog(state.catalog);
+    if (token !== renderToken) return;
+    if (r.found) {
+      next = {
+        ...state, title: r.subtitle ? `${r.title}: ${r.subtitle}` : r.title, authors: r.authors,
+        year: r.year, isbn: r.isbn,
+        ...(r.doi
+          ? { dois: [r.doi], text: r.doi }
+          : { text: recordCitation(r), leftover: r.title, onlyIds: false }),
+      };
+    } else {
+      next = { ...state, note: r.error || `Not found in ${CATALOGS[state.catalog.kind].name}.` };
+    }
+    render(next);
+  }
   // One DOI or id, alone or inside a selected citation: look it up either way (the OpenAlex
   // page button needs the W-id). A citation's own text is still what RefRunner gets.
-  const single = state.dois.length + state.openalex.length === 1;
-  const isWork = state.dois.length || state.openalex[0]?.type === 'works';
-  let next = state;
-  // An Open Library edition: its record becomes a citation, so it gets the catalog searches
-  // (by title) and RefRunner checks the whole reference.
-  if (state.openlibrary && !state.dois.length) {
-    const b = await lookupBook(state.openlibrary);
-    if (token !== renderToken) return;
-    if (b.found) {
-      render((next = {
-        ...state, title: b.subtitle ? `${b.title}: ${b.subtitle}` : b.title, authors: b.authors,
-        year: b.year, isbn: b.isbn, text: bookCitation(b), leftover: b.title, onlyIds: false,
-      }));
-    } else {
-      render((next = { ...state, note: b.error || 'Not found in Open Library.' }));
-    }
-  }
+  const single = next.dois.length + next.openalex.length === 1;
+  const isWork = next.dois.length || next.openalex[0]?.type === 'works';
   if (single && isWork) {
-    const w = await lookupWork({ doi: state.dois[0], openalex: state.openalex[0] });
+    const w = await lookupWork({ doi: next.dois[0], openalex: next.openalex[0] });
     if (token !== renderToken) return;
-    if (w) render((next = enrich(state, w)));
+    if (w) render((next = enrich(next, w)));
   }
   const ra = await lookupRegistries(next.dois);
   if (token !== renderToken || !Object.keys(ra).length) return;
@@ -129,7 +135,7 @@ function enrich(state, w) {
 
 function render(state) {
   shown = state;
-  const hasIds = state.dois.length || state.openalex.length || state.openlibrary;
+  const hasIds = state.dois.length || state.openalex.length || state.catalog;
   $('#found').hidden = !hasIds;
   $('#empty').hidden = !!hasIds || ['manual', 'selection'].includes(state.source);
 
@@ -149,7 +155,7 @@ function render(state) {
   ids.replaceChildren(
     ...state.dois.map((d) => idRow('DOI', d)),
     ...state.openalex.map((o) => idRow('OA', o.id)),
-    ...(state.openlibrary ? [idRow('OL', state.openlibrary)] : []),
+    ...(state.catalog ? [idRow(CATALOGS[state.catalog.kind].idLabel, state.catalog.id)] : []),
     ...(state.isbn ? [idRow('ISBN', state.isbn)] : []),
   );
 

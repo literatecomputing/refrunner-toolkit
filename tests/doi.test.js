@@ -4,7 +4,7 @@ import {
   cleanDoi, findDoiInUrl, arxivDoi, openalexFromUrl, parseText,
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
   surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl, doiSearches,
-  openLibraryFromUrl, bookCitation,
+  catalogFromUrl, parseCatalogRecord, recordCitation,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -169,22 +169,38 @@ test('popup heading is APA narrative style', () => {
   assert.equal(citeLine({}), '');
 });
 
-test('Open Library editions: id from the URL, a citation, links, and searches by title', () => {
-  assert.equal(openLibraryFromUrl('https://openlibrary.org/books/OL483046M/Female_genital_mutilation'), 'OL483046M');
-  assert.equal(openLibraryFromUrl('https://openlibrary.org/works/OL123W'), null);
-  assert.equal(openLibraryFromUrl('https://example.com/books/OL483046M'), null);
-  const book = {
-    authors: ['World Health Organization (WHO)'], year: 1998, title: 'Female genital mutilation',
-    subtitle: 'an overview', publisher: 'World Health Organization', isbn: '9241561912',
-  };
-  const cite = bookCitation(book);
-  assert.equal(cite, 'World Health Organization (WHO) (1998). Female genital mutilation: an overview. World Health Organization. ISBN 9241561912');
-  // Organizations keep their whole name in the heading.
+test('catalog records: id from the URL, a citation, links, and searches by title', () => {
+  assert.deepEqual(catalogFromUrl('https://openlibrary.org/books/OL483046M/Female_genital_mutilation'), { kind: 'openlibrary', id: 'OL483046M' });
+  assert.equal(catalogFromUrl('https://openlibrary.org/works/OL123W'), null);
+  assert.equal(catalogFromUrl('https://example.com/books/OL483046M'), null);
+  assert.deepEqual(catalogFromUrl('https://eric.ed.gov/?id=ED591473'), { kind: 'eric', id: 'ED591473' });
+  assert.deepEqual(catalogFromUrl('https://eric.ed.gov/?q=social+media&id=EJ1172284'), { kind: 'eric', id: 'EJ1172284' });
+
+  // Open Library (Books API shape, trimmed)
+  const ol = parseCatalogRecord({ kind: 'openlibrary', id: 'OL483046M' }, { 'OLID:OL483046M': {
+    title: 'Female genital mutilation', subtitle: 'an overview', authors: [{ name: 'World Health Organization (WHO)' }],
+    publish_date: '1998', publishers: [{ name: 'World Health Organization' }], identifiers: { isbn_10: ['9241561912'] },
+  } });
+  assert.equal(recordCitation(ol), 'World Health Organization (WHO) (1998). Female genital mutilation: an overview. World Health Organization. ISBN 9241561912');
   assert.equal(surname('World Health Organization (WHO)'), 'World Health Organization');
-  assert.equal(citeLine({ authors: book.authors, year: 1998, title: 'X' }), 'World Health Organization (1998). X');
-  const targets = targetsFor({ dois: [], openalex: [], openlibrary: 'OL483046M', text: cite, leftover: book.title, onlyIds: false });
+  assert.equal(citeLine({ authors: ol.authors, year: 1998, title: 'X' }), 'World Health Organization (1998). X');
+  const targets = targetsFor({ dois: [], openalex: [], catalog: { kind: 'openlibrary', id: 'OL483046M' }, text: recordCitation(ol), leftover: ol.title, onlyIds: false });
   const urls = Object.fromEntries(targets.map((t) => [`${t.group}/${t.label}`, t.url]));
   assert.equal(urls['Metadata sources/Open Library API'], 'https://openlibrary.org/api/books?bibkeys=OLID:OL483046M&jscmd=data&format=json');
   assert.match(urls['Search/Open Library'], /search\?q=Female%20genital%20mutilation$/);
   assert.match(urls['RefRunner/Add to RefRunner References'], /#refs=World\+Health/);
+
+  // ERIC (API shape, trimmed): an ED dissertation, and a record that carries a DOI
+  const ed = parseCatalogRecord({ kind: 'eric', id: 'ED591473' }, { response: { docs: [{
+    title: 'Social Media and the College Student Journey', author: ['Horvath-Plyman, Melissa'], publicationdateyear: 2018,
+    publisher: 'ProQuest LLC. 789 East Eisenhower Parkway, P.O. Box 1346', isbn: ['978-0-4385-3145-1'],
+  }] } });
+  assert.equal(recordCitation(ed), 'Horvath-Plyman, Melissa (2018). Social Media and the College Student Journey. ProQuest LLC. ISBN 978-0-4385-3145-1');
+  assert.equal(ed.doi, null);
+  const withDoi = parseCatalogRecord({ kind: 'eric', id: 'ED663658' }, { response: { docs: [{ title: 'T', url: 'https://doi.org/10.1353/jaie.2020.0012' }] } });
+  assert.equal(withDoi.doi, '10.1353/jaie.2020.0012');
+  assert.equal(parseCatalogRecord({ kind: 'eric', id: 'ED1' }, { response: { docs: [] } }), null);
+  const ericLinks = targetsFor({ dois: [], openalex: [], catalog: { kind: 'eric', id: 'ED591473' }, text: 'x y', onlyIds: false })
+    .filter((t) => t.group === 'Metadata sources').map((t) => `${t.label}|${t.short || ''}|${t.url}`);
+  assert.deepEqual(ericLinks, ['ERIC||https://eric.ed.gov/?id=ED591473', 'ERIC API||https://api.ies.ed.gov/eric/?search=id:ED591473&format=json&fields=id,title,author,source,publicationdateyear,publicationtype,publisher,isbn,issn,url,peerreviewed,description,subject']);
 });
