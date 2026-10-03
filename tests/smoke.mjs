@@ -142,6 +142,21 @@ const ui = await popup.evaluate(() => ({
 ok(ui.ids.includes('W2974823616') && ui.ids.length === 2 && ui.links.length >= 5, 'popup enriches OpenAlex id with DOI');
 ok(ui.title === 'Author and Second (2004). Mocked OpenAlex Title', `popup shows APA-style author (year): ${ui.title}`);
 
+// Records: logo buttons on one line, logos loaded
+await popup.fill('#manual', '10.1111/j.1467-9280.2005.01636.x');
+await popup.waitForFunction(() => document.querySelectorAll('#groups .src-logo').length >= 3, null, { timeout: 10000 }).catch(() => {});
+const rec = await popup.evaluate(() => {
+  const row = [...document.querySelectorAll('#groups section')].find((s) => s.querySelector('.src-logo'))?.querySelector('.links');
+  const btns = [...(row?.querySelectorAll('.btn') || [])];
+  return {
+    texts: btns.map((b) => b.textContent),
+    tops: new Set(btns.map((b) => b.offsetTop)).size,
+    loaded: [...row.querySelectorAll('img')].every((i) => i.complete && i.naturalWidth > 0),
+  };
+});
+// The mocked OpenAlex lookup adds the W-id, so the full row: OA API, OA page, Crossref search, API.
+ok(rec.texts.join('|') === 'API|Page|Search|API' && rec.tops === 1 && rec.loaded, `Records row: logos, one line ${JSON.stringify(rec)}`);
+
 // Enter in the paste box sends it to RefRunner (no RefRunner tab open, so a new one)
 const sent = ctx.waitForEvent('page');
 await popup.fill('#manual', 'Lester (2019)');

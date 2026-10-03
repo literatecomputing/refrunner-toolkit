@@ -149,9 +149,16 @@ function groupEl(name, items) {
   g.append(el('h2', '', name));
   const links = el('div', 'links');
   for (const t of items) {
-    const a = el('a', name === 'RefRunner' ? 'btn primary' : 'btn', t.label);
+    const a = el('a', name === 'RefRunner' ? 'btn primary' : 'btn', t.short || t.label);
     a.href = t.url;
-    a.title = t.overflow ? 'Too long for a link: copy the text, then paste it into RefRunner' : t.url;
+    a.title = t.overflow ? 'Too long for a link: copy the text, then paste it into RefRunner' : `${t.label}\n${t.url}`;
+    if (t.icon) {
+      const img = el('img', `src-logo src-logo-${t.icon}`);
+      img.src = `icons/${t.icon}.${t.icon === 'openalex' ? 'png' : 'svg'}`;
+      img.alt = '';
+      a.prepend(img);
+      a.setAttribute('aria-label', t.label);
+    }
     if (t.overflow) {
       a.dataset.overflow = '1';
       a.dataset.refs = t.refs;
