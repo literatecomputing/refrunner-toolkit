@@ -23,6 +23,7 @@ async function init() {
   $('#groups').addEventListener('click', onLinkClick);
   $('#ids').addEventListener('click', onCopyClick);
   $('#manual').addEventListener('input', debounce(onManualInput, 250));
+  showShortcuts();
 
   // Selected text wins over the page, as it does in the right-click menu.
   const selection = await readSelection(tab);
@@ -177,4 +178,19 @@ function debounce(fn, ms) {
     clearTimeout(t);
     t = setTimeout(() => fn(...args), ms);
   };
+}
+
+// Extensions can't assign their own keys, and Chrome applies the manifest's suggestions only on
+// first install, so show what's set and link to Chrome's shortcuts page.
+const KEY_LABELS = { _execute_action: 'popup', 'openalex-api': 'OpenAlex', 'send-refrunner': 'RefRunner' };
+async function showShortcuts() {
+  const cmds = await chrome.commands.getAll();
+  $('#keys').replaceChildren(...cmds.flatMap((c, i) => [
+    i ? ' · ' : '', el('kbd', '', c.shortcut || 'not set'), ` ${KEY_LABELS[c.name] || c.name}`,
+  ]));
+  $('#set-keys').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+    window.close();
+  });
 }
