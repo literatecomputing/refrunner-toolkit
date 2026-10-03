@@ -160,6 +160,20 @@ const rec = await popup.evaluate(() => {
 });
 // The mocked OpenAlex lookup adds the W-id, so the full row: OA API, OA page, Crossref search, API.
 ok(rec.texts.join('|') === 'API|Page|Search|API' && rec.tops === 1 && rec.loaded, `Records row: logos, one line ${JSON.stringify(rec)}`);
+// A citation with one DOI in it is looked up too (Page button), but RefRunner gets the citation.
+await popup.fill('#manual', 'Smith, J. (2005). Looking at books. 10.1111/j.1467-9280.2005.01636.x');
+await popup.waitForFunction(
+  () => document.querySelector('#groups .refrunner .btn')?.href.includes('Smith')
+    && [...document.querySelectorAll('#ids .label')].some((l) => l.textContent === 'OA'),
+  null, { timeout: 10000 },
+).catch(() => {});
+const cit = await popup.evaluate(() => ({
+  texts: [...document.querySelectorAll('#groups .btn')].map((b) => b.textContent),
+  rr: document.querySelector('#groups .refrunner .btn')?.href || '',
+}));
+ok(cit.texts.includes('Page') && cit.rr.includes('Smith'), `a citation's DOI is looked up, and RefRunner gets the citation ${JSON.stringify(cit).slice(0, 160)}`);
+await popup.fill('#manual', '10.1111/j.1467-9280.2005.01636.x');
+await popup.waitForFunction(() => document.querySelector('#ids .mono')?.textContent === '10.1111/j.1467-9280.2005.01636.x' && !document.querySelector('#groups .refrunner .btn')?.href.includes('Smith'), null, { timeout: 10000 }).catch(() => {});
 const open = await popup.evaluate(() => ({ hidden: document.getElementById('open-doi').hidden, href: document.getElementById('open-doi').href }));
 ok(!open.hidden && open.href === 'https://doi.org/10.1111/j.1467-9280.2005.01636.x', `Open on the title line goes to doi.org ${JSON.stringify(open)}`);
 

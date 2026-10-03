@@ -78,7 +78,9 @@ function onManualInput(e) {
 async function show(state) {
   const token = ++renderToken;
   render(state);
-  const single = state.onlyIds && state.dois.length + state.openalex.length === 1;
+  // One DOI or id, alone or inside a selected citation: look it up either way (the OpenAlex
+  // page button needs the W-id). A citation's own text is still what RefRunner gets.
+  const single = state.dois.length + state.openalex.length === 1;
   const isWork = state.dois.length || state.openalex[0]?.type === 'works';
   let next = state;
   if (single && isWork) {
@@ -99,7 +101,7 @@ function enrich(state, w) {
     next.year = w.year || state.year;
     if (!next.dois.length && w.doi) next.dois = [w.doi];
     if (!next.openalex.length && w.id) next.openalex = [{ type: 'works', id: w.id }];
-    next.text = [...next.dois, ...next.openalex.map((o) => o.id)].join('\n');
+    if (state.onlyIds) next.text = [...next.dois, ...next.openalex.map((o) => o.id)].join('\n');
   } else if (w.found === false) {
     next.note = 'Not found in OpenAlex.';
   } else if (w.error) {
