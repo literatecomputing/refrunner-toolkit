@@ -137,7 +137,9 @@ async function fullSelection(info, tab) {
 
 function flash(tab, text) {
   const scope = tab?.id >= 0 ? { tabId: tab.id } : {};
-  chrome.action.setBadgeBackgroundColor({ color: '#b3261e', ...scope });
-  chrome.action.setBadgeText({ text, ...scope });
-  setTimeout(() => chrome.action.setBadgeText({ text: '', ...scope }), 2500);
+  // The tab may close before the badge clears; that's fine, so ignore the rejection.
+  const ignore = () => {};
+  chrome.action.setBadgeBackgroundColor({ color: '#b3261e', ...scope }).catch(ignore);
+  chrome.action.setBadgeText({ text, ...scope }).catch(ignore);
+  setTimeout(() => chrome.action.setBadgeText({ text: '', ...scope }).catch(ignore), 2500);
 }
