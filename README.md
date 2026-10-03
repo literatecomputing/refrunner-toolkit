@@ -12,7 +12,8 @@ A Chrome extension for getting from an article to its records:
   Library, Google Books, ResearchGate — under *Search*, and the raw results of those with a keyless
   public API (OpenAlex, Semantic Scholar, ERIC, LC, Open Library, Google Books) under *API*. (The
   Semantic Scholar and Google Books APIs are rate-limited and sometimes answer 429.) A DOI gets
-  Scholar under Search and its Semantic Scholar record under API. The context menu's *More
+  the places that look works up by DOI: Google Scholar, Semantic Scholar, Google, PubMed, Europe
+  PMC and Wikidata under Search, and their APIs plus OpenCitations' citation count under API. The context menu's *More
   searches* submenu has the search pages.
 - **Right-click** a selection or a link → *RefRunner Toolkit* → same destinations. Selections can be one
   DOI, several DOIs, an OpenAlex ID, a URL, or whole citations.

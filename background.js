@@ -1,7 +1,7 @@
 // Service worker: right-click menu and keyboard shortcut.
 import {
   parseText, oaApiUrl, oaWebUrl, oaApiDoiUrl, oaSearchUrl, crossrefSearchUrl, doiOrgUrl, refrunnerUrl,
-  datacitePageUrl, scholarUrl, registryOf, moreSearches,
+  datacitePageUrl, scholarUrl, registryOf, moreSearches, doiSearches,
 } from './lib/doi.js';
 import {
   detectForTab, readSelection, refrunnerBase, lookupWork, lookupRegistries, openTab, openOverflow, handToOpenTab,
@@ -81,7 +81,8 @@ async function destinations(action, p) {
   if (action.startsWith('more:')) {
     // A selection of DOIs is searched as the DOIs; anything else as its words.
     const q = p.onlyIds ? p.dois.join(' ') : p.leftover || p.text;
-    const s = q && moreSearches(q).find((m) => `more:${m.label}` === action);
+    const byDoi = p.onlyIds && p.dois.length ? doiSearches(p.dois[0]) : [];
+    const s = q && [...byDoi, ...moreSearches(q)].find((m) => m.url && `more:${m.label}` === action);
     return s ? [s.url] : [];
   }
   const needDois = action === 'crossref' || action === 'doi-org' || action === 'scholar';

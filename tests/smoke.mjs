@@ -142,6 +142,14 @@ const ui = await popup.evaluate(() => ({
 ok(ui.ids.includes('W2974823616') && ui.ids.length === 2 && ui.links.length >= 5, 'popup enriches OpenAlex id with DOI');
 ok(ui.title === 'Author and Second (2004). Mocked OpenAlex Title', `popup shows APA-style author (year): ${ui.title}`);
 
+// Enter in the paste box sends it to RefRunner (no RefRunner tab open, so a new one)
+const sent = ctx.waitForEvent('page');
+await popup.fill('#manual', 'Lester (2019)');
+await popup.press('#manual', 'Enter');
+const p4 = await sent;
+ok(p4.url().includes('#refs=Lester'), `Enter in the paste box sends to RefRunner: ${p4.url().slice(0, 100)}`);
+await p4.close();
+
 // dev-server checkbox (smoke runs unpacked, so IS_DEV is true)
 const bases = await helper.evaluate(async () => {
   const { refrunnerBase, IS_DEV } = await import('./lib/chrome.js');

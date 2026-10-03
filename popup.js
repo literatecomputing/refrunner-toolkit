@@ -27,6 +27,13 @@ async function init() {
   $('#groups').addEventListener('click', onLinkClick);
   $('#ids').addEventListener('click', onCopyClick);
   $('#manual').addEventListener('input', debounce(onManualInput, 250));
+  // Enter in the paste box sends what's there to RefRunner, without waiting for the debounce.
+  $('#manual').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.isComposing || !e.target.value.trim()) return;
+    e.preventDefault();
+    onManualInput(e);
+    $('#groups .refrunner .btn')?.click();
+  });
   showShortcuts();
   base = await refrunnerBase();
   if (IS_DEV) setUpDevToggle();

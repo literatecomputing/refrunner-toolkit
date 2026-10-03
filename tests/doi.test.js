@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   cleanDoi, findDoiInUrl, arxivDoi, openalexFromUrl, parseText,
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
-  surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl,
+  surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl, doiSearches,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -106,7 +106,11 @@ test('targetsFor offers the expected destinations', () => {
   const labels = (p) => targetsFor(p).map((t) => `${t.group}/${t.label}`);
   assert.deepEqual(labels(parseText(PSYCH)), [
     'OpenAlex/API record', 'Crossref/Search', 'Crossref/API record', 'Resolve/doi.org',
-    'Search/Google Scholar', 'API/Semantic Scholar', 'RefRunner/Send to RefRunner',
+    'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google', 'Search/PubMed',
+    'Search/Europe PMC', 'Search/Wikidata',
+    'API/Semantic Scholar', 'API/PubMed', 'API/Europe PMC', 'API/Wikidata',
+    'API/OpenCitations (citation count)',
+    'RefRunner/Send to RefRunner',
   ]);
   assert.deepEqual(labels(parseText('https://openalex.org/works/W2974823616')), [
     'OpenAlex/API record', 'OpenAlex/Web page',
@@ -134,6 +138,9 @@ test('moreSearches builds each page and API URL from the query', () => {
   assert.equal(s['Library of Congress'].api, 'https://www.loc.gov/books/?q=Lester%20(2019)%20discursive&fo=json');
   assert.equal(s.Google.api, null);
   assert.equal(s2ApiDoiUrl(PSYCH).split('?')[0], `https://api.semanticscholar.org/graph/v1/paper/DOI:${PSYCH}`);
+  const d = Object.fromEntries(doiSearches(PSYCH).map((m) => [m.label, m]));
+  assert.equal(d.PubMed.url, `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(PSYCH)}%5Bdoi%5D`);
+  assert.equal(d['OpenCitations (citation count)'].url, null);
 });
 
 test('popup heading is APA narrative style', () => {
