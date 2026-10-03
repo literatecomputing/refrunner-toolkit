@@ -34,8 +34,9 @@ directly; authors, sources, institutions etc. work too.
 
 ## Settings
 
-None. RefRunner picks the citation style. To point at a dev server, edit `REFRUNNER_BASE` in
-`lib/doi.js` (and don't package that). Ctrl/Cmd-click or middle-click a popup link to open it in
+None. RefRunner picks the citation style. Unpacked (development) installs show a "Send to dev
+server" checkbox in the popup footer that points RefRunner links at `https://localhost:5173`; it's
+hidden in Web Store installs. Ctrl/Cmd-click or middle-click a popup link to open it in
 the background and keep the popup open.
 
 ## Development

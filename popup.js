@@ -1,5 +1,5 @@
-import { parseText, targetsFor, citeLine } from './lib/doi.js';
-import { detectForTab, readSelection, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
+import { parseText, targetsFor, citeLine, REFRUNNER_DEV_BASE } from './lib/doi.js';
+import { detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
 
 const $ = (sel) => document.querySelector(sel);
 const SOURCE_LABELS = {
@@ -14,6 +14,8 @@ const SOURCE_LABELS = {
 let tab;
 let pageState = null;
 let renderToken = 0;
+let base;
+let shown = null;
 
 init();
 
@@ -24,6 +26,8 @@ async function init() {
   $('#ids').addEventListener('click', onCopyClick);
   $('#manual').addEventListener('input', debounce(onManualInput, 250));
   showShortcuts();
+  base = await refrunnerBase();
+  if (IS_DEV) setUpDevToggle();
 
   // Selected text wins over the page, as it does in the right-click menu.
   const selection = await readSelection(tab);
@@ -95,6 +99,7 @@ function enrich(state, w) {
 }
 
 function render(state) {
+  shown = state;
   const hasIds = state.dois.length || state.openalex.length;
   $('#found').hidden = !hasIds;
   $('#empty').hidden = !!hasIds || ['manual', 'selection'].includes(state.source);
@@ -110,7 +115,7 @@ function render(state) {
   );
 
   const groups = new Map();
-  for (const t of targetsFor(state, { ra: state.ra })) {
+  for (const t of targetsFor(state, { ra: state.ra, base })) {
     if (!groups.has(t.group)) groups.set(t.group, []);
     groups.get(t.group).push(t);
   }
@@ -192,5 +197,16 @@ async function showShortcuts() {
     e.preventDefault();
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
     window.close();
+  });
+}
+
+function setUpDevToggle() {
+  const box = $('#dev-server');
+  box.checked = base === REFRUNNER_DEV_BASE;
+  $('#dev-label').hidden = false;
+  box.addEventListener('change', async () => {
+    await chrome.storage.local.set({ useDevServer: box.checked });
+    base = await refrunnerBase();
+    if (shown) render(shown);
   });
 }

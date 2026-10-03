@@ -136,6 +136,17 @@ const ui = await popup.evaluate(() => ({
 ok(ui.ids.includes('W2974823616') && ui.ids.length === 2 && ui.links.length >= 5, 'popup enriches OpenAlex id with DOI');
 ok(ui.title === 'Author and Second (2004). Mocked OpenAlex Title', `popup shows APA-style author (year): ${ui.title}`);
 
+// dev-server checkbox (smoke runs unpacked, so IS_DEV is true)
+const bases = await helper.evaluate(async () => {
+  const { refrunnerBase, IS_DEV } = await import('./lib/chrome.js');
+  const before = await refrunnerBase();
+  await chrome.storage.local.set({ useDevServer: true });
+  const after = await refrunnerBase();
+  await chrome.storage.local.remove('useDevServer');
+  return { IS_DEV, before, after };
+});
+ok(bases.IS_DEV && bases.before === 'https://www.refrunner.com' && bases.after === 'https://localhost:5173', `dev-server toggle ${JSON.stringify(bases)}`);
+
 // 6. overflow page
 const big = 'Ref line number one, a reasonably long citation string.\n'.repeat(200);
 const op = ctx.waitForEvent('page');

@@ -3,7 +3,7 @@ import {
   parseText, oaApiUrl, oaWebUrl, oaApiDoiUrl, oaSearchUrl, crossrefSearchUrl, doiOrgUrl, refrunnerUrl,
   datacitePageUrl, scholarUrl, registryOf,
 } from './lib/doi.js';
-import { detectForTab, readSelection, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
+import { detectForTab, readSelection, refrunnerBase, lookupWork, lookupRegistries, openTab, openOverflow } from './lib/chrome.js';
 
 const MAX_TABS = 5;
 const CONTEXTS = ['selection', 'link'];
@@ -112,7 +112,7 @@ async function sendToRefRunner(p, tab) {
     if (!dois.length) return flash(tab, '?');
     parsed = { ...p, dois };
   }
-  const r = refrunnerUrl(parsed);
+  const r = refrunnerUrl(parsed, { base: await refrunnerBase() });
   if (!r) return flash(tab, '?');
   if (r.overflow) return openOverflow(r.refs, r.url, tab);
   await openTab(r.url, tab);

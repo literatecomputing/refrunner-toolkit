@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Jump from an article page, a selected DOI, or an OpenAlex ID to the OpenAlex API, Crossref, doi.org, or RefRunner.",
   "minimum_chrome_version": "116",
-  "permissions": ["activeTab", "scripting", "contextMenus"],
+  "permissions": ["activeTab", "scripting", "contextMenus", "storage"],
   "background": { "service_worker": "background.js", "type": "module" },
   "action": {
     "default_popup": "popup.html",

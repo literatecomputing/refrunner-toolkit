@@ -6,7 +6,7 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
 
 | File | Role |
 |---|---|
-| `manifest.json` | MV3. Permissions: `activeTab`, `scripting`, `contextMenus`. No host permissions, no storage. |
+| `manifest.json` | MV3. Permissions: `activeTab`, `scripting`, `contextMenus`, `storage` (only for the dev-server checkbox). No host permissions. |
 | `lib/doi.js` | **Pure** parsing and URL building. No `chrome.*` here so it stays unit-testable in Node. |
 | `lib/chrome.js` | Page detection (injects a meta-tag reader), OpenAlex lookup, tab opening. |
 | `background.js` | Service worker (ES module): context menu and `openalex-api` shortcut. |

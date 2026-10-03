@@ -37,6 +37,7 @@
     label.manual { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
     footer { padding: 8px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
     footer kbd { font-family: var(--mono); }
+    footer label { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -58,7 +59,10 @@
       <input type="text" id="manual" placeholder="10.1111/j.1467-9280.2005.01636.x" autocomplete="off" spellcheck="false">
     </label>
   </main>
-  <footer><span id="keys"></span> <a href="#" id="set-keys">Set shortcuts</a></footer>
+  <footer>
+    <span id="keys"></span> <a href="#" id="set-keys">Set shortcuts</a>
+    <label id="dev-label" hidden><input type="checkbox" id="dev-server"> Send to dev server (localhost:5173)</label>
+  </footer>
   <script type="module" src="popup.js"></script>
 </body>
 </html>
