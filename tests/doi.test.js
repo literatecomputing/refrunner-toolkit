@@ -69,6 +69,15 @@ test('parseText: identifiers only vs. a full citation', () => {
   assert.deepEqual(p.dois, [PSYCH]);
   assert.equal(p.onlyIds, false);
 
+  // A few words around the DOI are selection noise: just the DOI.
+  p = parseText('2257. DOI=http://dx.doi.org/10.1145/2858036.2858198');
+  assert.deepEqual(p.dois, ['10.1145/2858036.2858198']);
+  assert.equal(p.onlyIds, true);
+  assert.equal(refrunnerUrl(p).url.split('?')[0], 'https://www.refrunner.com/10.1145/2858036.2858198');
+  // Five words or more is a reference (or most of one): send it all.
+  p = parseText('Barrio et al. Improving comprehension of numbers. https://doi.org/10.1145/2858036.2858510');
+  assert.equal(p.onlyIds, false);
+
   p = parseText('W2974823616');
   assert.deepEqual(p.openalex, [{ type: 'works', id: 'W2974823616' }]);
   assert.equal(p.onlyIds, true);
