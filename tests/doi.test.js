@@ -106,25 +106,24 @@ test('targetsFor offers the expected destinations', () => {
   const labels = (p) => targetsFor(p).map((t) => `${t.group}/${t.label}`);
   assert.deepEqual(labels(parseText(PSYCH)), [
     'OpenAlex/API record', 'Crossref/Search', 'Crossref/API record', 'Resolve/doi.org',
-    'Google Scholar/Search', 'More searches/Semantic Scholar API', 'RefRunner/Send to RefRunner',
+    'Search/Google Scholar', 'API/Semantic Scholar', 'RefRunner/Send to RefRunner',
   ]);
   assert.deepEqual(labels(parseText('https://openalex.org/works/W2974823616')), [
     'OpenAlex/API record', 'OpenAlex/Web page',
   ]);
   assert.deepEqual(labels(parseText('some title words')), [
-    'OpenAlex/API search', 'Crossref/Search', 'Google Scholar/Search',
-    'More searches/Semantic Scholar', 'More searches/Semantic Scholar API', 'More searches/Google',
-    'More searches/JSTOR', 'More searches/ERIC', 'More searches/ERIC API',
-    'More searches/Library of Congress', 'More searches/Library of Congress API',
-    'More searches/Open Library', 'More searches/Open Library API',
-    'More searches/Google Books', 'More searches/Google Books API', 'More searches/ResearchGate',
+    'Search/Crossref', 'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google',
+    'Search/JSTOR', 'Search/ERIC', 'Search/Library of Congress', 'Search/Open Library',
+    'Search/Google Books', 'Search/ResearchGate',
+    'API/OpenAlex', 'API/Semantic Scholar', 'API/ERIC', 'API/Library of Congress',
+    'API/Open Library', 'API/Google Books',
     'RefRunner/Check this text in RefRunner',
   ]);
   const groups = (p, ra) => [...new Set(targetsFor(p, { ra }).map((t) => t.group))];
   // arXiv is DataCite even before doi.org answers; doi.org's answer wins; other registries get no registry links.
-  assert.deepEqual(groups(parseText('10.48550/arXiv.2101.00001')), ['OpenAlex', 'DataCite', 'Resolve', 'Google Scholar', 'More searches', 'RefRunner']);
+  assert.deepEqual(groups(parseText('10.48550/arXiv.2101.00001')), ['OpenAlex', 'DataCite', 'Resolve', 'Search', 'API', 'RefRunner']);
   assert.deepEqual(groups(parseText('10.5281/zenodo.123'), { '10.5281/zenodo.123': 'DataCite' })[1], 'DataCite');
-  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['OpenAlex', 'Resolve', 'Google Scholar', 'More searches', 'RefRunner']);
+  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['OpenAlex', 'Resolve', 'Search', 'API', 'RefRunner']);
   assert.equal(registryOf('10.1111/X', { '10.1111/x': 'Crossref' }), 'Crossref');
 });
 
