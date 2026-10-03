@@ -121,7 +121,7 @@ test('targetsFor offers the expected destinations', () => {
     'Search/Google Books', 'Search/ResearchGate',
     'API/OpenAlex', 'API/Semantic Scholar', 'API/ERIC', 'API/Library of Congress',
     'API/Open Library', 'API/Google Books',
-    'RefRunner/Check this text in RefRunner',
+    'RefRunner/Add to RefRunner References',
   ]);
   const groups = (p, ra) => [...new Set(targetsFor(p, { ra }).map((t) => t.group))];
   // arXiv is DataCite even before doi.org answers; doi.org's answer wins; other registries get no registry links.
