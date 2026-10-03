@@ -4,7 +4,7 @@ import {
   cleanDoi, findDoiInUrl, arxivDoi, openalexFromUrl, parseText,
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
   surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl, doiSearches,
-  catalogFromUrl, parseCatalogRecord, recordCitation,
+  catalogFromUrl, parseCatalogRecord, recordCitation, freeCopies,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -203,4 +203,28 @@ test('catalog records: id from the URL, a citation, links, and searches by title
   const ericLinks = targetsFor({ dois: [], openalex: [], catalog: { kind: 'eric', id: 'ED591473' }, text: 'x y', onlyIds: false })
     .filter((t) => t.group === 'Metadata sources').map((t) => `${t.label}|${t.short || ''}|${t.url}`);
   assert.deepEqual(ericLinks, ['ERIC||https://eric.ed.gov/?id=ED591473', 'ERIC API||https://api.ies.ed.gov/eric/?search=id:ED591473&format=json&fields=id,title,author,source,publicationdateyear,publicationtype,publisher,isbn,issn,url,peerreviewed,description,subject']);
+});
+
+test('free copies from OpenAlex locations: PDFs and PMC, repositories first, no index listings', () => {
+  // AlphaFold (10.1038/s41586-021-03819-2), OpenAlex locations trimmed: the publisher's PDF,
+  // a PMC copy with no pdf_url, and "open" index listings that are not copies.
+  const alphafold = [
+    { is_oa: true, pdf_url: 'https://www.nature.com/articles/s41586-021-03819-2.pdf', landing_page_url: 'https://doi.org/10.1038/s41586-021-03819-2', version: 'publishedVersion', source: { display_name: 'Nature', type: 'journal' } },
+    { is_oa: false, pdf_url: null, landing_page_url: 'https://pubmed.ncbi.nlm.nih.gov/34265844', source: { display_name: 'PubMed', type: 'repository' } },
+    { is_oa: true, pdf_url: null, landing_page_url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/8371605', version: 'submittedVersion', source: { display_name: 'PubMed Central', type: 'repository' } },
+    { is_oa: true, pdf_url: null, landing_page_url: 'https://doi.org/10.25504/fairsharing.246086', source: { display_name: 'FAIRsharing.org', type: 'repository' } },
+  ];
+  const copies = freeCopies(alphafold);
+  assert.deepEqual(copies.map((c) => [c.host, c.pdf, c.url]), [
+    ['PubMed Central', false, 'https://www.ncbi.nlm.nih.gov/pmc/articles/8371605'],
+    ['Nature', true, 'https://www.nature.com/articles/s41586-021-03819-2.pdf'],
+  ]);
+  const links = targetsFor({ dois: ['10.1038/s41586-021-03819-2'], openalex: [], pdfs: copies, text: 'x', onlyIds: true })
+    .filter((t) => t.group === 'Free copy').map((t) => `${t.label}|${t.detail}`);
+  assert.deepEqual(links, ['PubMed Central full text|preprint', 'Nature PDF|published version']);
+  // A repository PDF (arXiv) leads; duplicates and junk drop out; at most three.
+  const arxiv = { is_oa: true, pdf_url: 'https://arxiv.org/pdf/2101.00001', version: 'submittedVersion', source: { display_name: 'arXiv', type: 'repository' } };
+  assert.equal(freeCopies([alphafold[0], arxiv, arxiv])[0].host, 'arXiv');
+  assert.equal(freeCopies([alphafold[0], arxiv, alphafold[2], { ...arxiv, pdf_url: 'https://x.org/a.pdf', source: null }]).length, 3);
+  assert.deepEqual(freeCopies(undefined), []);
 });

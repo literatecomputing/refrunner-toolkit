@@ -49,6 +49,11 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
 - **Registry-aware links.** `doi.org/ra/<DOI>,<DOI>` says who registered each DOI; DataCite DOIs
   (arXiv, Zenodo, Dryad, datasets) get DataCite links instead of Crossref ones, which would find
   nothing. Until the lookup answers we assume Crossref, except `10.48550/` (arXiv), always DataCite.
+- **Free copies come from the same OpenAlex lookup** (`select=…,locations`; no extra request,
+  no new permission, and the PDF is only a link). `freeCopies()` lists every direct `pdf_url`
+  plus PubMed Central / Europe PMC full text, repositories before the publisher, at most three.
+  Other "open" landing pages are skipped because OpenAlex marks index listings (DOAJ,
+  FAIRsharing) open too, and `version` is a tooltip hint only (it calls PMC copies "submitted").
 - **The privacy policy lives in the app**, at https://www.refrunner.com/privacy-policy#chrome-extension
   (reference-assistant, `PrivacyPolicyPage.jsx`); the Web Store listing links there. If the
   extension starts reading or sending anything new (a new `fetch`, a new permission), update
