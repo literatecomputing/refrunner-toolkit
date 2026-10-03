@@ -49,5 +49,9 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
 - **Registry-aware links.** `doi.org/ra/<DOI>,<DOI>` says who registered each DOI; DataCite DOIs
   (arXiv, Zenodo, Dryad, datasets) get DataCite links instead of Crossref ones, which would find
   nothing. Until the lookup answers we assume Crossref, except `10.48550/` (arXiv), always DataCite.
+- **The privacy policy lives in the app**, at https://www.refrunner.com/privacy-policy#chrome-extension
+  (reference-assistant, `PrivacyPolicyPage.jsx`); the Web Store listing links there. If the
+  extension starts reading or sending anything new (a new `fetch`, a new permission), update
+  that section too. Store listing text and images are in `store/`.
 
 Planned work lives in ROADMAP.md.
