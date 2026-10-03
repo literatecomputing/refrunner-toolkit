@@ -4,6 +4,7 @@ import {
   cleanDoi, findDoiInUrl, arxivDoi, openalexFromUrl, parseText,
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
   surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl, doiSearches,
+  openLibraryFromUrl, bookCitation,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -166,4 +167,24 @@ test('popup heading is APA narrative style', () => {
   assert.equal(citeLine({ authors: ['Jo Ivey'], title }), 'Ivey. A Title');
   assert.equal(citeLine({ year: 2026, title }), 'A Title (2026)');
   assert.equal(citeLine({}), '');
+});
+
+test('Open Library editions: id from the URL, a citation, links, and searches by title', () => {
+  assert.equal(openLibraryFromUrl('https://openlibrary.org/books/OL483046M/Female_genital_mutilation'), 'OL483046M');
+  assert.equal(openLibraryFromUrl('https://openlibrary.org/works/OL123W'), null);
+  assert.equal(openLibraryFromUrl('https://example.com/books/OL483046M'), null);
+  const book = {
+    authors: ['World Health Organization (WHO)'], year: 1998, title: 'Female genital mutilation',
+    subtitle: 'an overview', publisher: 'World Health Organization', isbn: '9241561912',
+  };
+  const cite = bookCitation(book);
+  assert.equal(cite, 'World Health Organization (WHO) (1998). Female genital mutilation: an overview. World Health Organization. ISBN 9241561912');
+  // Organizations keep their whole name in the heading.
+  assert.equal(surname('World Health Organization (WHO)'), 'World Health Organization');
+  assert.equal(citeLine({ authors: book.authors, year: 1998, title: 'X' }), 'World Health Organization (1998). X');
+  const targets = targetsFor({ dois: [], openalex: [], openlibrary: 'OL483046M', text: cite, leftover: book.title, onlyIds: false });
+  const urls = Object.fromEntries(targets.map((t) => [`${t.group}/${t.label}`, t.url]));
+  assert.equal(urls['Metadata sources/Open Library API'], 'https://openlibrary.org/api/books?bibkeys=OLID:OL483046M&jscmd=data&format=json');
+  assert.match(urls['Search/Open Library'], /search\?q=Female%20genital%20mutilation$/);
+  assert.match(urls['RefRunner/Add to RefRunner References'], /#refs=World\+Health/);
 });

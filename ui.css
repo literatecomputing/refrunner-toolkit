@@ -25,6 +25,8 @@
   }
 }
 * { box-sizing: border-box; }
+/* .btn and friends set display, which would otherwise beat the hidden attribute. */
+[hidden] { display: none !important; }
 body {
   margin: 0;
   background: var(--bg);

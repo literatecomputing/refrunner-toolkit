@@ -45,6 +45,10 @@ the next open; background changes need the reload).
 OpenAlex pages (`openalex.org/works/W…`, `api.openalex.org/w…`, `?zoom=w…`) give the W-id
 directly; authors, sources, institutions etc. work too.
 
+Open Library edition pages (`openlibrary.org/books/OL…M`) are looked up in Open Library's Books
+API and turned into a citation (authors, year, title, publisher, ISBN), which goes to RefRunner
+and to the catalog searches.
+
 ## Settings
 
 None. RefRunner picks the citation style. Unpacked (development) installs show a "Send to dev

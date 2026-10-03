@@ -1,6 +1,6 @@
-import { parseText, targetsFor, citeLine, doiOrgUrl, REFRUNNER_DEV_BASE } from './lib/doi.js';
+import { parseText, targetsFor, citeLine, doiOrgUrl, bookCitation, REFRUNNER_DEV_BASE } from './lib/doi.js';
 import {
-  detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupRegistries, openTab, openOverflow, handToOpenTab,
+  detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupBook, lookupRegistries, openTab, openOverflow, handToOpenTab,
 } from './lib/chrome.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -9,6 +9,7 @@ const SOURCE_LABELS = {
   arxiv: 'arXiv DOI from the page URL',
   meta: 'DOI from the page metadata',
   openalex: 'OpenAlex record',
+  openlibrary: 'Open Library edition',
   manual: 'From what you pasted',
   selection: 'From your selection',
 };
@@ -47,18 +48,20 @@ async function init() {
   pageState = stateFrom({
     dois: d.doi ? [d.doi] : [],
     openalex: d.openalex ? [d.openalex] : [],
+    openlibrary: d.openlibrary,
     source: d.source,
     title: d.title,
     authors: d.authors,
     year: d.year,
   });
   show(pageState);
-  if (!$('#groups .refrunner .btn')) $('#manual').focus();
+  // A book's citation (and its RefRunner button) arrives after the lookup; let that take focus.
+  if (!$('#groups .refrunner .btn') && !pageState.openlibrary) $('#manual').focus();
 }
 
-function stateFrom({ dois = [], openalex = [], source = null, title = null, authors = [], year = null, text, leftover = '', onlyIds = true }) {
+function stateFrom({ dois = [], openalex = [], openlibrary = null, source = null, title = null, authors = [], year = null, text, leftover = '', onlyIds = true }) {
   return {
-    dois, openalex, source, title, authors, year, leftover, onlyIds,
+    dois, openalex, openlibrary, isbn: '', source, title, authors, year, leftover, onlyIds,
     text: text ?? [...dois, ...openalex.map((o) => o.id)].join('\n'),
     note: '', ra: {},
   };
@@ -83,6 +86,20 @@ async function show(state) {
   const single = state.dois.length + state.openalex.length === 1;
   const isWork = state.dois.length || state.openalex[0]?.type === 'works';
   let next = state;
+  // An Open Library edition: its record becomes a citation, so it gets the catalog searches
+  // (by title) and RefRunner checks the whole reference.
+  if (state.openlibrary && !state.dois.length) {
+    const b = await lookupBook(state.openlibrary);
+    if (token !== renderToken) return;
+    if (b.found) {
+      render((next = {
+        ...state, title: b.subtitle ? `${b.title}: ${b.subtitle}` : b.title, authors: b.authors,
+        year: b.year, isbn: b.isbn, text: bookCitation(b), leftover: b.title, onlyIds: false,
+      }));
+    } else {
+      render((next = { ...state, note: b.error || 'Not found in Open Library.' }));
+    }
+  }
   if (single && isWork) {
     const w = await lookupWork({ doi: state.dois[0], openalex: state.openalex[0] });
     if (token !== renderToken) return;
@@ -112,7 +129,7 @@ function enrich(state, w) {
 
 function render(state) {
   shown = state;
-  const hasIds = state.dois.length || state.openalex.length;
+  const hasIds = state.dois.length || state.openalex.length || state.openlibrary;
   $('#found').hidden = !hasIds;
   $('#empty').hidden = !!hasIds || ['manual', 'selection'].includes(state.source);
 
@@ -132,6 +149,8 @@ function render(state) {
   ids.replaceChildren(
     ...state.dois.map((d) => idRow('DOI', d)),
     ...state.openalex.map((o) => idRow('OA', o.id)),
+    ...(state.openlibrary ? [idRow('OL', state.openlibrary)] : []),
+    ...(state.isbn ? [idRow('ISBN', state.isbn)] : []),
   );
 
   const groups = new Map();
@@ -165,7 +184,7 @@ function groupEl(name, items) {
     a.title = t.overflow ? 'Too long for a link: copy the text, then paste it into RefRunner' : `${t.label}\n${t.url}`;
     if (t.icon) {
       const img = el('img', `src-logo src-logo-${t.icon}`);
-      img.src = `icons/${t.icon}.${t.icon === 'openalex' ? 'png' : 'svg'}`;
+      img.src = `icons/${t.icon}.${['openalex', 'openlibrary'].includes(t.icon) ? 'png' : 'svg'}`;
       img.alt = '';
       a.prepend(img);
       a.setAttribute('aria-label', t.label);
