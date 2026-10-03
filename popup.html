@@ -5,7 +5,9 @@
   <title>RefRunner Toolkit</title>
   <link rel="stylesheet" href="ui.css">
   <style>
-    body { width: 360px; }
+    /* 420, not 360: the Records row (OpenAlex API · OpenAlex · Crossref search · Crossref API)
+       is 377px and should stay on one line, with room for the scrollbar. */
+    body { width: 420px; }
     header {
       display: flex; align-items: center; gap: 8px;
       padding: 10px 12px; border-bottom: 1px solid var(--border);
