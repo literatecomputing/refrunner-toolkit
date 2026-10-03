@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "RefRunner Toolkit",
   "version": "0.1.0",
-  "description": "Jump from an article page, a selected DOI, or an OpenAlex ID to the OpenAlex API, Crossref, doi.org, or RefRunner.",
+  "description": "Check a selected reference list in RefRunner, or jump from a page's DOI or OpenAlex ID to OpenAlex, Crossref, DataCite, and Scholar.",
   "minimum_chrome_version": "116",
   "permissions": ["activeTab", "scripting", "contextMenus", "storage"],
   "background": { "service_worker": "background.js", "type": "module" },
