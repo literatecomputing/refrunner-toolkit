@@ -87,8 +87,7 @@ Then certify all three:
 - I do not use or transfer user data for purposes that are unrelated to my item's single purpose.
 - I do not use or transfer user data to determine creditworthiness or for lending purposes.
 
-**Privacy policy URL:** https://www.refrunner.com/privacy-policy (once it has the extension
-section from `privacy-policy.md`; reviewers check that the policy covers the extension).
+**Privacy policy URL:** https://www.refrunner.com/privacy-policy#chrome-extension
 
 ## Distribution tab
 
