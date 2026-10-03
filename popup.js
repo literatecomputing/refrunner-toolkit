@@ -43,7 +43,7 @@ async function init() {
     year: d.year,
   });
   show(pageState);
-  if (!pageState.dois.length && !pageState.openalex.length) $('#manual').focus();
+  if (!$('#groups .refrunner .btn')) $('#manual').focus();
 }
 
 function stateFrom({ dois = [], openalex = [], source = null, title = null, authors = [], year = null, text, leftover = '', onlyIds = true }) {
@@ -119,7 +119,11 @@ function render(state) {
     if (!groups.has(t.group)) groups.set(t.group, []);
     groups.get(t.group).push(t);
   }
-  $('#groups').replaceChildren(...[...groups].map(([name, items]) => groupEl(name, items)));
+  // RefRunner first, and focused (unless you're typing), so Enter sends it.
+  const ordered = [...groups].sort(([a], [b]) => (b === 'RefRunner') - (a === 'RefRunner'));
+  $('#groups').replaceChildren(...ordered.map(([name, items]) => groupEl(name, items)));
+  const rr = $('#groups .refrunner .btn');
+  if (rr && document.activeElement === document.body) rr.focus();
 }
 
 function idRow(label, value) {
