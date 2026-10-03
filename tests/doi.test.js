@@ -105,7 +105,7 @@ test('RefRunner URLs follow the llms.txt recipe', () => {
 test('targetsFor offers the expected destinations', () => {
   const labels = (p, ra) => targetsFor(p, { ra }).map((t) => `${t.group}/${t.label}`);
   assert.deepEqual(labels(parseText(PSYCH)), [
-    'Records/OpenAlex API', 'Records/Crossref search', 'Records/Crossref API',
+    'Metadata sources/OpenAlex API', 'Metadata sources/Crossref search', 'Metadata sources/Crossref API',
     'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google', 'Search/PubMed',
     'Search/Europe PMC', 'Search/Wikidata',
     'API/Semantic Scholar', 'API/PubMed', 'API/Europe PMC', 'API/Wikidata',
@@ -113,7 +113,7 @@ test('targetsFor offers the expected destinations', () => {
     'RefRunner/Send to RefRunner',
   ]);
   assert.deepEqual(labels(parseText('https://openalex.org/works/W2974823616')), [
-    'Records/OpenAlex API', 'Records/OpenAlex',
+    'Metadata sources/OpenAlex API', 'Metadata sources/OpenAlex',
   ]);
   assert.deepEqual(labels(parseText('some title words')), [
     'Search/Crossref', 'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google',
@@ -126,10 +126,10 @@ test('targetsFor offers the expected destinations', () => {
   const groups = (p, ra) => [...new Set(targetsFor(p, { ra }).map((t) => t.group))];
   // arXiv is DataCite even before doi.org answers; doi.org's answer wins; other registries get no registry links.
   assert.deepEqual(labels(parseText('10.48550/arXiv.2101.00001')).slice(0, 3), [
-    'Records/OpenAlex API', 'Records/DataCite', 'Records/DataCite API',
+    'Metadata sources/OpenAlex API', 'Metadata sources/DataCite', 'Metadata sources/DataCite API',
   ]);
-  assert.ok(labels(parseText('10.5281/zenodo.123'), { '10.5281/zenodo.123': 'DataCite' }).includes('Records/DataCite'));
-  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['Records', 'Search', 'API', 'RefRunner']);
+  assert.ok(labels(parseText('10.5281/zenodo.123'), { '10.5281/zenodo.123': 'DataCite' }).includes('Metadata sources/DataCite'));
+  assert.deepEqual(groups(parseText('10.1400/123'), { '10.1400/123': 'mEDRA' }), ['Metadata sources', 'Search', 'API', 'RefRunner']);
   assert.equal(registryOf('10.1111/X', { '10.1111/x': 'Crossref' }), 'Crossref');
 });
 

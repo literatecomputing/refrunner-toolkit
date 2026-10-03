@@ -142,7 +142,7 @@ const ui = await popup.evaluate(() => ({
 ok(ui.ids.includes('W2974823616') && ui.ids.length === 2 && ui.links.length >= 5, 'popup enriches OpenAlex id with DOI');
 ok(ui.title === 'Author and Second (2004). Mocked OpenAlex Title', `popup shows APA-style author (year): ${ui.title}`);
 
-// Records: logo buttons on one line, logos loaded
+// Metadata sources: logo buttons on one line, logos loaded
 await popup.fill('#manual', '10.1111/j.1467-9280.2005.01636.x');
 await popup.waitForFunction(
   () => document.querySelector('#ids .mono')?.textContent === '10.1111/j.1467-9280.2005.01636.x'
@@ -159,7 +159,7 @@ const rec = await popup.evaluate(() => {
   };
 });
 // The mocked OpenAlex lookup adds the W-id, so the full row: OA API, OA page, Crossref search, API.
-ok(rec.texts.join('|') === 'API|Page|Search|API' && rec.tops === 1 && rec.loaded, `Records row: logos, one line ${JSON.stringify(rec)}`);
+ok(rec.texts.join('|') === 'API|Page|Search|API' && rec.tops === 1 && rec.loaded, `Metadata sources row: logos, one line ${JSON.stringify(rec)}`);
 // A citation with one DOI in it is looked up too (Page button), but RefRunner gets the citation.
 await popup.fill('#manual', 'Smith, J. (2005). Looking at books. 10.1111/j.1467-9280.2005.01636.x');
 await popup.waitForFunction(
