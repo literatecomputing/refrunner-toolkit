@@ -22,7 +22,7 @@
       "description": "Open the OpenAlex API record for this page"
     },
     "send-refrunner": {
-      "suggested_key": { "default": "Alt+Shift+R" },
+      "suggested_key": { "default": "Alt+Shift+C" },
       "description": "Send the selection, or this page's DOI, to RefRunner"
     }
   }

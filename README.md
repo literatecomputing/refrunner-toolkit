@@ -10,7 +10,7 @@ A Chrome extension for getting from an article to its records:
 - **Right-click** a selection or a link → *RefRunner Toolkit* → same destinations. Selections can be one
   DOI, several DOIs, an OpenAlex ID, a URL, or whole citations.
 - **Alt+Shift+O** jumps straight to the OpenAlex API record for the current page.
-- **Alt+Shift+R** sends the selection (or, with nothing selected, the page's DOI) straight to RefRunner.
+- **Alt+Shift+C** ("check") sends the selection (or, with nothing selected, the page's DOI) straight to RefRunner.
 
 ## Install (unpacked)
 

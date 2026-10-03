@@ -104,11 +104,11 @@ let p2 = await newPage;
 ok(p2.url().includes('#refs=Smith%2C+J.+%282005%29.+One.%0AJones'), `RefRunner refs link keeps line break: ${p2.url().slice(0, 140)}`);
 await p2.close();
 
-// Alt+Shift+R: same selection, straight to RefRunner
+// Alt+Shift+C: same selection, straight to RefRunner
 const p3wait = ctx.waitForEvent('page');
 await sw.evaluate(async (tabId) => __test.handleShortcut('send-refrunner', await chrome.tabs.get(tabId)), tabId);
 const p3 = await p3wait;
-ok(p3.url().includes('#refs=Smith%2C+J.+%282005%29.+One.%0AJones'), `Alt+Shift+R sends the selection: ${p3.url().slice(0, 100)}`);
+ok(p3.url().includes('#refs=Smith%2C+J.+%282005%29.+One.%0AJones'), `Alt+Shift+C sends the selection: ${p3.url().slice(0, 100)}`);
 await p3.close();
 
 // 4. menu handler: selected DOI -> OpenAlex page via lookup
