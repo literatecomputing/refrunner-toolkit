@@ -137,7 +137,8 @@ test('moreSearches builds each page and API URL from the query', () => {
   const s = Object.fromEntries(moreSearches('Lester  (2019)\ndiscursive').map((m) => [m.label, m]));
   assert.equal(s['Semantic Scholar'].url, 'https://www.semanticscholar.org/search?q=Lester%20(2019)%20discursive');
   assert.match(s['Semantic Scholar'].api, /^https:\/\/api\.semanticscholar\.org\/graph\/v1\/paper\/search\?query=Lester%20/);
-  assert.equal(s['Library of Congress'].api, 'https://www.loc.gov/books/?q=Lester%20(2019)%20discursive&fo=json');
+  assert.equal(s['Library of Congress'].url, 'https://search.catalog.loc.gov/search?option=keyword&query=Lester%20(2019)%20discursive');
+  assert.match(s['Library of Congress'].api, /LCDB\?.*&query=Lester%20and%202019%20and%20discursive$/);
   assert.equal(s.Google.api, null);
   assert.equal(s2ApiDoiUrl(PSYCH).split('?')[0], `https://api.semanticscholar.org/graph/v1/paper/DOI:${PSYCH}`);
   const d = Object.fromEntries(doiSearches(PSYCH).map((m) => [m.label, m]));
