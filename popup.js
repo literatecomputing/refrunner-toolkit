@@ -122,6 +122,7 @@ function enrich(state, w) {
     next.title = w.title || state.title;
     if (w.authors.length) next.authors = w.authors;
     next.year = w.year || state.year;
+    if (w.pdfs?.length) next.pdfs = w.pdfs;
     if (!next.dois.length && w.doi) next.dois = [w.doi];
     if (!next.openalex.length && w.id) next.openalex = [{ type: 'works', id: w.id }];
     if (state.onlyIds) next.text = [...next.dois, ...next.openalex.map((o) => o.id)].join('\n');
@@ -187,7 +188,9 @@ function groupEl(name, items) {
   for (const t of items) {
     const a = el('a', name === 'RefRunner' ? 'btn primary' : 'btn', t.short || t.label);
     a.href = t.url;
-    a.title = t.overflow ? 'Too long for a link: copy the text, then paste it into RefRunner' : `${t.label}\n${t.url}`;
+    a.title = t.overflow
+      ? 'Too long for a link: copy the text, then paste it into RefRunner'
+      : `${t.label}${t.detail ? ` (OpenAlex: ${t.detail})` : ''}\n${t.url}`;
     if (t.icon) {
       const img = el('img', `src-logo src-logo-${t.icon}`);
       img.src = `icons/${t.icon}.${['openalex', 'openlibrary'].includes(t.icon) ? 'png' : 'svg'}`;
