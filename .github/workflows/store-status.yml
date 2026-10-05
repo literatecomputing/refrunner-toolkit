@@ -1,0 +1,27 @@
+name: Store status
+
+# Run by hand (Actions → Store status → Run workflow) to check that GitHub can reach the Chrome
+# Web Store as the publisher service account, and to see the item's review/publish state.
+# Uploads nothing.
+
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - id: google
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+      - name: Item status
+        env:
+          TOKEN: ${{ steps.google.outputs.access_token }}
+          ITEM: publishers/0b5a1a74-3ebd-4855-b6ec-7b8798461012/items/kdlfdajncknkinjdhfmgiggdpgblejih
+        run: curl -fsS -H "Authorization: Bearer $TOKEN" "https://chromewebstore.googleapis.com/v2/$ITEM:fetchStatus"

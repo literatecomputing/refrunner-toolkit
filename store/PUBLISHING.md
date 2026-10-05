@@ -13,6 +13,15 @@ release with the zip, uploads the zip to the store, and submits it for review. G
 it once approved (hours to a few days). Listing text, images, and privacy answers are edited in
 the dashboard only; the API can't change them (texts are in `LISTING.md`).
 
+## Current setup (done Oct 2026)
+
+- Google Cloud project `refrunner-495617` (refrunner), owned by jay@literatecomputing.com.
+- Service account `cws-publisher@refrunner-495617.iam.gserviceaccount.com`, added in the
+  dashboard's Settings as the publisher's service account.
+- Workload identity pool/provider `github` (only `literatecomputing/refrunner-toolkit`).
+- Repo variables `GCP_WIF_PROVIDER` and `GCP_SERVICE_ACCOUNT`.
+- To check it works without releasing: Actions → **Store status** → Run workflow.
+
 ## One-time setup: let GitHub Actions publish
 
 No key file: GitHub's OIDC token is exchanged for a short-lived Google token for a service
