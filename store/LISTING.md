@@ -18,10 +18,11 @@ Check a selected reference list in RefRunner, or jump from a page's DOI or OpenA
 **Contains in-app purchases:** No. The extension sells nothing; RefRunner's plans are on its own
 site, and the description says what's free.
 
-**Description:**
+**Description:** (Oct 5 2026: a bullet naming twelve search sites was rejected as "keyword
+spam", violation Yellow Argon. Describe kinds of sources, don't list them.)
 
 ```
-Select a reference list on any page and check it in RefRunner with one keystroke. On an article page, get straight to its records in OpenAlex, Crossref or DataCite, doi.org, and Google Scholar.
+Select a reference list on any page and check it in RefRunner with one keystroke. On an article page, get straight to the work's records and look it up elsewhere.
 
 CHECK REFERENCES
 • Select one citation or a whole reference list, then press Alt+Shift+C (or click the toolbar button and press Enter). RefRunner checks every entry against the scholarly record, flags what's wrong or can't be found, and formats the corrected list.
@@ -32,11 +33,10 @@ CHECK REFERENCES
 
 JUMP FROM ANY ARTICLE
 • Finds the DOI from the page address or the publisher's metadata tags (works on most journal sites, including ones whose URLs don't show the DOI), and arXiv IDs.
-• On an Open Library book page or an ERIC record, builds the citation (authors, year, title, publisher, ISBN), or uses the record's DOI, to check in RefRunner or search library catalogs.
-• Shows the work as "Author (year). Title", with its DOI and OpenAlex ID ready to copy and an Open button for doi.org.
-• Metadata sources: the OpenAlex record and page, and the Crossref or DataCite record (whichever registered the DOI, so arXiv preprints and datasets go to DataCite).
-• Search the DOI or citation in Google Scholar, Semantic Scholar, Google, PubMed, Europe PMC, Wikidata, JSTOR, ERIC, the Library of Congress, Open Library, Google Books, and ResearchGate, with the matching API records one click away.
-• Alt+Shift+O opens the OpenAlex API record for the page you're on.
+• On a library catalog record (Open Library or ERIC), builds the citation or uses the record's DOI, to check in RefRunner.
+• Shows the work as "Author (year). Title", with its DOI and OpenAlex ID ready to copy.
+• Opens the work's metadata record from whichever registry holds its DOI, so preprints and datasets go to the right place.
+• Searches for the DOI or citation in scholarly indexes and library catalogs, with the raw API results one click away.
 • Paste a DOI, OpenAlex ID, URL, or citation into the popup to look it up, or press Enter to send it to RefRunner.
 
 PRIVATE BY DESIGN
