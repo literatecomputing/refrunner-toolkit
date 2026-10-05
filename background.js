@@ -50,17 +50,13 @@ chrome.commands.onCommand.addListener((command, tab) => {
 async function handleShortcut(command, tab) {
   tab ||= (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
   if (command === 'send-refrunner') {
-    // Selection first, as in the popup; otherwise the page's DOI or OpenAlex id.
+    // Selection first, as in the popup; otherwise the page's DOI, OpenAlex id, or catalog record.
     let text = await readSelection(tab);
     if (!text) {
       const d = await detectForTab(tab);
-      text = d.doi || d.openalex?.id || '';
-      if (!text && d.catalog) {
-        const r = await lookupCatalog(d.catalog);
-        if (r.found) text = r.doi || recordCitation(r);
-      }
+      text = d.doi || d.openalex?.id || (d.catalog ? tab.url : '');
     }
-    return sendToRefRunner(parseText(text), tab);
+    return sendToRefRunner(await resolveCatalog(parseText(text)), tab);
   }
   if (command !== 'openalex-api') return;
   const d = await detectForTab(tab);
@@ -69,10 +65,20 @@ async function handleShortcut(command, tab) {
   await openTab(url, tab);
 }
 
+/**
+ * A bare Open Library or ERIC link/id stands for its record: its DOI if it has one, else its
+ * citation. Anything else (a citation that merely contains such a link) is left as it is.
+ */
+async function resolveCatalog(parsed) {
+  if (!parsed.catalog || !parsed.onlyIds || parsed.dois.length || parsed.openalex.length) return parsed;
+  const r = await lookupCatalog(parsed.catalog);
+  return r.found ? parseText(r.doi || recordCitation(r)) : parsed;
+}
+
 async function handleMenu(info, tab) {
   // A selection wins over the link it sits in.
   const text = info.selectionText ? await fullSelection(info, tab) : info.linkUrl || '';
-  const parsed = parseText(text);
+  const parsed = await resolveCatalog(parseText(text));
 
   if (info.menuItemId === 'refrunner') return sendToRefRunner(parsed, tab);
 

@@ -90,12 +90,15 @@ async function show(state) {
     const r = await lookupCatalog(state.catalog);
     if (token !== renderToken) return;
     if (r.found) {
+      // A bare link or id becomes the record's DOI or citation; a selected citation that merely
+      // contains the link keeps its own text for RefRunner.
       next = {
         ...state, title: r.subtitle ? `${r.title}: ${r.subtitle}` : r.title, authors: r.authors,
         year: r.year, isbn: r.isbn,
-        ...(r.doi
-          ? { dois: [r.doi], text: r.doi }
-          : { text: recordCitation(r), leftover: r.title, onlyIds: false }),
+        ...(r.doi ? { dois: [r.doi] } : {}),
+        ...(state.onlyIds && (r.doi
+          ? { text: r.doi }
+          : { text: recordCitation(r), leftover: r.title, onlyIds: false })),
       };
     } else {
       next = { ...state, note: r.error || `Not found in ${CATALOGS[state.catalog.kind].name}.` };

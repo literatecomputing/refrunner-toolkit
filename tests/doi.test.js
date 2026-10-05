@@ -228,3 +228,17 @@ test('free copies from OpenAlex locations: PDFs and PMC, repositories first, no 
   assert.equal(freeCopies([alphafold[0], arxiv, alphafold[2], { ...arxiv, pdf_url: 'https://x.org/a.pdf', source: null }]).length, 3);
   assert.deepEqual(freeCopies(undefined), []);
 });
+
+test('parseText: ERIC and Open Library links and bare ERIC numbers name a catalog record', () => {
+  const link = parseText('https://eric.ed.gov/?id=ED591473');
+  assert.deepEqual([link.catalog, link.onlyIds, link.dois], [{ kind: 'eric', id: 'ED591473' }, true, []]);
+  assert.deepEqual(parseText('ERIC Number: EJ1172284').catalog, { kind: 'eric', id: 'EJ1172284' });
+  assert.deepEqual(parseText('https://openlibrary.org/books/OL483046M/Female_genital_mutilation').catalog,
+    { kind: 'openlibrary', id: 'OL483046M' });
+  // A citation that contains the link keeps its text for RefRunner.
+  const cite = parseText('Horvath-Plyman, M. (2018). Social media and the college student journey. https://eric.ed.gov/?id=ED591473');
+  assert.deepEqual([cite.catalog?.id, cite.onlyIds], ['ED591473', false]);
+  // Other links and words are not catalog records.
+  assert.equal(parseText('https://example.com/?id=ED591473x').catalog, null);
+  assert.equal(parseText('Reduced costs').catalog, null);
+});

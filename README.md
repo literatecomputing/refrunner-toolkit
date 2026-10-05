@@ -48,7 +48,8 @@ directly; authors, sources, institutions etc. work too.
 Catalog record pages are looked up in the catalog's API: Open Library editions
 (`openlibrary.org/books/OL…M`) and ERIC records (`eric.ed.gov/?id=ED…` or `EJ…`). A record with a
 DOI is then handled like an article page; otherwise it becomes a citation (authors, year, title,
-journal or publisher, ISBN), which goes to RefRunner and to the catalog searches.
+journal or publisher, ISBN), which goes to RefRunner and to the catalog searches. The same goes
+for such a link (or a bare ERIC number like `ED591473`) that you select, paste, or right-click.
 
 ## Settings
 
