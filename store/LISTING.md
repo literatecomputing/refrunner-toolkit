@@ -11,9 +11,12 @@ Copy each block into the matching field of the developer dashboard
 **Summary** (from the manifest, 132 characters max):
 Check a selected reference list in RefRunner, or jump from a page's DOI or OpenAlex ID to OpenAlex, Crossref, DataCite, and Scholar.
 
-**Category:** Productivity → Education (or Tools)
+**Category:** Productivity → Tools
 
 **Language:** English
+
+**Contains in-app purchases:** No. The extension sells nothing; RefRunner's plans are on its own
+site, and the description says what's free.
 
 **Description:**
 
@@ -25,6 +28,7 @@ CHECK REFERENCES
 • Right-click a selection → RefRunner Toolkit → Send to RefRunner does the same.
 • Line breaks are kept, so a pasted list stays one reference per line.
 • If RefRunner is already open in a tab, the references are added to its list; otherwise a new tab opens.
+• RefRunner is free to try without an account and free for 50 lookups a day with one; a $50/year plan covers more.
 
 JUMP FROM ANY ARTICLE
 • Finds the DOI from the page address or the publisher's metadata tags (works on most journal sites, including ones whose URLs don't show the DOI), and arXiv IDs.
