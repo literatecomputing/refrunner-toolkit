@@ -48,7 +48,12 @@ Shortcuts can be changed at chrome://extensions/shortcuts (there's a link at the
 2. `screenshot-2-references.jpg`: a selected reference list; "Add to RefRunner References" ready for Enter.
 3. `screenshot-3-arxiv.jpg`: an arXiv preprint; DataCite links instead of Crossref.
 
+**Store icon** (128×128): `icon-128.png` (96px artwork with 16px transparent padding, per Google's
+image guidelines; `icons/128.png` fills the square, so don't use that one here).
+
 **Small promo tile** (440×280): `promo-440x280.jpg`
+
+**Promo video, marquee tile:** leave empty (optional; the marquee is only used if Google features the item).
 
 **Official URL / homepage:** https://www.refrunner.com
 **Support URL:** https://github.com/literatecomputing/refrunner-toolkit/issues
