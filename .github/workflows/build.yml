@@ -1,9 +1,10 @@
 name: Build
 
 # Every push: unit tests, the Playwright smoke test, and the Web Store zip as a run artifact.
-# A tag like v2026.10.3.1 also attaches the zip to a GitHub release.
-# ponytail: uploading to the Chrome Web Store stays manual; automate it with the Web Store API
-# (OAuth client + refresh token as secrets) if releases get frequent.
+# A tag like v2026.10.5.3 also attaches the zip to a GitHub release, uploads it to the Chrome
+# Web Store, and submits it for review (Google publishes it once approved).
+# Store access: Workload Identity Federation, no stored key. Setup is in store/PUBLISHING.md;
+# the repo variables GCP_WIF_PROVIDER and GCP_SERVICE_ACCOUNT come from it.
 
 on:
   push:
@@ -13,6 +14,7 @@ on:
 
 permissions:
   contents: write # for the release on tags
+  id-token: write # for Google's Workload Identity Federation (Chrome Web Store upload)
 
 jobs:
   build:
@@ -42,3 +44,33 @@ jobs:
         run: gh release create "$GITHUB_REF_NAME" dist/refrunner-toolkit.zip --title "$GITHUB_REF_NAME" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
+      - name: Sign in to Google for the Chrome Web Store
+        id: google
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+      - name: Upload to the Chrome Web Store and submit for review
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TOKEN: ${{ steps.google.outputs.access_token }}
+          ITEM: publishers/0b5a1a74-3ebd-4855-b6ec-7b8798461012/items/kdlfdajncknkinjdhfmgiggdpgblejih
+        run: |
+          api=https://chromewebstore.googleapis.com
+          auth="Authorization: Bearer $TOKEN"
+          curl -fsS -X POST -H "$auth" -H 'Content-Type: application/zip' \
+            --data-binary @dist/refrunner-toolkit.zip "$api/upload/v2/$ITEM:upload" | tee upload.json
+          state=$(jq -r '.uploadState // empty' upload.json)
+          # Uploads can finish after the call returns; wait for Google to process the package.
+          for _ in $(seq 30); do
+            [ "$state" = IN_PROGRESS ] || break
+            sleep 10
+            state=$(curl -fsS -H "$auth" "$api/v2/$ITEM:fetchStatus" | jq -r '.lastAsyncUploadState // empty')
+          done
+          echo "upload state: $state"
+          [ "$state" = SUCCEEDED ] || { echo "::error::Upload did not succeed ($state)"; exit 1; }
+          curl -fsS -X POST -H "$auth" -H 'Content-Type: application/json' \
+            -d '{"publishType":"DEFAULT_PUBLISH"}' "$api/v2/$ITEM:publish"

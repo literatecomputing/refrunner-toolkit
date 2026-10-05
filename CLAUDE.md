@@ -57,6 +57,7 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
 - **The privacy policy lives in the app**, at https://www.refrunner.com/privacy-policy#chrome-extension
   (reference-assistant, `PrivacyPolicyPage.jsx`); the Web Store listing links there. If the
   extension starts reading or sending anything new (a new `fetch`, a new permission), update
-  that section too. Store listing text and images are in `store/`.
+  that section too. Store listing text and images are in `store/`;
+  releasing (tag → CI uploads to the store) is in `store/PUBLISHING.md`.
 
 Planned work lives in ROADMAP.md.
