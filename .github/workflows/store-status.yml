@@ -24,4 +24,5 @@ jobs:
         env:
           TOKEN: ${{ steps.google.outputs.access_token }}
           ITEM: publishers/0b5a1a74-3ebd-4855-b6ec-7b8798461012/items/kdlfdajncknkinjdhfmgiggdpgblejih
-        run: curl -fsS -H "Authorization: Bearer $TOKEN" "https://chromewebstore.googleapis.com/v2/$ITEM:fetchStatus"
+        run: |
+          curl -fsS -H "Authorization: Bearer $TOKEN" "https://chromewebstore.googleapis.com/v2/$ITEM:fetchStatus"
