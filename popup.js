@@ -1,6 +1,6 @@
 import { parseText, targetsFor, citeLine, doiOrgUrl, recordCitation, CATALOGS, REFRUNNER_DEV_BASE } from './lib/doi.js';
 import {
-  detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupCatalog, lookupRegistries, openTab, openOverflow, handToOpenTab,
+  detectForTab, readSelection, IS_DEV, refrunnerBase, lookupWork, lookupCatalog, lookupRegistries, lookupUpdates, openTab, openOverflow, handToOpenTab,
 } from './lib/chrome.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -28,6 +28,7 @@ async function init() {
 
   $('#groups').addEventListener('click', onLinkClick);
   $('#open-doi').addEventListener('click', onLinkClick);
+  $('#notices').addEventListener('click', onLinkClick);
   $('#ids').addEventListener('click', onCopyClick);
   $('#manual').addEventListener('input', debounce(onManualInput, 250));
   // Enter in the paste box sends what's there to RefRunner, without waiting for the debounce.
@@ -114,9 +115,12 @@ async function show(state) {
     if (token !== renderToken) return;
     if (w) render((next = enrich(next, w)));
   }
-  const ra = await lookupRegistries(next.dois);
-  if (token !== renderToken || !Object.keys(ra).length) return;
-  render({ ...next, ra });
+  // Which registry holds each DOI, and (for one work) any retraction or correction notices.
+  // arXiv DOIs are DataCite's, which has no such notices.
+  const one = next.dois.length === 1 && !/^10\.48550\//.test(next.dois[0]) ? next.dois[0] : null;
+  const [ra, updates] = await Promise.all([lookupRegistries(next.dois), one ? lookupUpdates(one) : []]);
+  if (token !== renderToken || (!Object.keys(ra).length && !updates.length)) return;
+  render({ ...next, ra, updates });
 }
 
 function enrich(state, w) {
@@ -126,6 +130,7 @@ function enrich(state, w) {
     if (w.authors.length) next.authors = w.authors;
     next.year = w.year || state.year;
     if (w.pdfs?.length) next.pdfs = w.pdfs;
+    next.retracted = w.retracted;
     if (!next.dois.length && w.doi) next.dois = [w.doi];
     if (!next.openalex.length && w.id) next.openalex = [{ type: 'works', id: w.id }];
     if (state.onlyIds) next.text = [...next.dois, ...next.openalex.map((o) => o.id)].join('\n');
@@ -145,6 +150,7 @@ function render(state) {
 
   $('#source').textContent = SOURCE_LABELS[state.source] || '';
   $('#title').textContent = citeLine(state);
+  $('#notices').replaceChildren(...noticeTags(state));
   $('#note').textContent = state.note || '';
 
   // The DOI itself, at doi.org: one link on the title line rather than a section of its own.
@@ -173,6 +179,25 @@ function render(state) {
   $('#groups').replaceChildren(...ordered.map(([name, items]) => groupEl(name, items)));
   const rr = $('#groups .refrunner .btn');
   if (rr && document.activeElement === document.body) rr.focus();
+}
+
+/** Retraction/correction tags under the title, each opening its notice at doi.org. */
+function noticeTags(state) {
+  const tags = (state.updates || []).map((u) => {
+    const a = el(u.doi ? 'a' : 'span', `btn${u.severe ? ' severe' : ''}`, `${u.label}${u.year ? ` ${u.year}` : ''}`);
+    if (u.doi) {
+      a.href = doiOrgUrl(u.doi);
+      a.title = `${u.label} notice: ${u.doi}`;
+    }
+    return a;
+  });
+  // OpenAlex knows of retractions Crossref doesn't list (other registries); no notice to link.
+  if (state.retracted && !state.updates?.some((u) => u.severe)) {
+    const t = el('span', 'btn severe', 'Retracted');
+    t.title = 'OpenAlex marks this work as retracted';
+    tags.unshift(t);
+  }
+  return tags;
 }
 
 function idRow(label, value) {

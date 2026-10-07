@@ -8,6 +8,7 @@
   --accent-text: #ffffff;
   --accent-soft: #e2f1ef;
   --warn: #8a4b00;
+  --danger: #b3261e;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   color-scheme: light dark;
 }
@@ -22,6 +23,7 @@
     --accent-text: #0d1f1e;
     --accent-soft: #1f3533;
     --warn: #f0b470;
+    --danger: #f2b8b5;
   }
 }
 * { box-sizing: border-box; }

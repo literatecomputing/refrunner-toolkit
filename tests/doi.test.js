@@ -5,6 +5,7 @@ import {
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
   surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl, doiSearches,
   catalogFromUrl, parseCatalogRecord, recordCitation, freeCopies,
+  parseUpdates,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -241,4 +242,22 @@ test('parseText: ERIC and Open Library links and bare ERIC numbers name a catalo
   // Other links and words are not catalog records.
   assert.equal(parseText('https://example.com/?id=ED591473x').catalog, null);
   assert.equal(parseText('Reduced costs').catalog, null);
+});
+
+test('parseUpdates: retraction and correction notices from Crossref updated-by', () => {
+  // Wakefield et al. 1998 (10.1016/S0140-6736(97)11096-0), as Crossref returns it (trimmed).
+  const wakefield = { 'updated-by': [
+    { DOI: '10.1016/s0140-6736(04)15715-2', type: 'correction', label: 'Correction', source: 'retraction-watch', updated: { 'date-parts': [[2004, 3, 6]] } },
+    { DOI: '10.1016/s0140-6736(10)60175-4', type: 'retraction', label: 'Retraction', source: 'retraction-watch', updated: { 'date-parts': [[2010, 2, 6]] } },
+    // The same retraction deposited by the publisher too: shown once.
+    { DOI: '10.1016/S0140-6736(10)60175-4', type: 'retraction', label: 'Retraction', source: 'publisher', updated: { 'date-parts': [[2010, 2, 6]] } },
+  ] };
+  assert.deepEqual(parseUpdates(wakefield).map((u) => [u.label, u.year, u.severe, u.doi]), [
+    ['Correction', 2004, false, '10.1016/s0140-6736(04)15715-2'],
+    ['Retracted', 2010, true, '10.1016/s0140-6736(10)60175-4'],
+  ]);
+  assert.deepEqual(parseUpdates({ 'updated-by': [{ DOI: '10.1/x', type: 'expression_of_concern' }] })
+    .map((u) => [u.label, u.severe]), [['Expression of concern', false]]);
+  assert.deepEqual(parseUpdates({}), []);
+  assert.deepEqual(parseUpdates(undefined), []);
 });

@@ -8,6 +8,9 @@ A Chrome extension for getting from an article to its records:
   DOI, per doi.org), Google Scholar, and "Send to RefRunner". It shows the work as
   "Author (year). Title" and fills in whichever of DOI / OpenAlex ID the page didn't have; with a
   DOI, **Open ↗** on the title line opens it at doi.org.
+  Retractions and other notices (corrections, expressions of concern) show as tags under the
+  title, linking to each notice: from the DOI's Crossref record (`updated-by`, which includes
+  Retraction Watch), plus OpenAlex's `is_retracted` for DOIs Crossref doesn't hold.
 - **Search / API**, for text: every place RefRunner suggests when it can't find a reference —
   Crossref, Google Scholar, Semantic Scholar, Google, JSTOR, ERIC, Library of Congress, Open
   Library, Google Books, ResearchGate — under *Search*, and the raw results of those with a keyless

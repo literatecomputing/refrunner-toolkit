@@ -35,6 +35,7 @@ JUMP FROM ANY ARTICLE
 • Finds the DOI from the page address or the publisher's metadata tags (works on most journal sites, including ones whose URLs don't show the DOI), and arXiv IDs.
 • On a library catalog record (Open Library or ERIC), builds the citation or uses the record's DOI, to check in RefRunner.
 • Shows the work as "Author (year). Title", with its DOI and OpenAlex ID ready to copy.
+• Flags retracted works and published corrections, each linking to its notice.
 • Opens the work's metadata record from whichever registry holds its DOI, so preprints and datasets go to the right place.
 • Searches for the DOI or citation in scholarly indexes and library catalogs, with the raw API results one click away.
 • Paste a DOI, OpenAlex ID, URL, or citation into the popup to look it up, or press Enter to send it to RefRunner.
@@ -84,7 +85,7 @@ Help researchers check and look up scholarly references: send selected citations
 development checkbox. Store users are never asked for it. If the form asks about it, say so.)
 
 **Remote code:** No, I am not using remote code. (All JavaScript ships in the package; the
-extension only fetches JSON data from api.openalex.org, doi.org, openlibrary.org, and api.ies.ed.gov (ERIC).)
+extension only fetches JSON data from api.openalex.org, api.crossref.org, doi.org, openlibrary.org, and api.ies.ed.gov (ERIC).)
 
 **Data usage:** tick **Website content** only. The extension reads the selected text and
 citation metadata of the page the user acts on, and sends identifiers and text the user chose
