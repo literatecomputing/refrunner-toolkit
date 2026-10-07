@@ -115,9 +115,9 @@ async function show(state) {
     if (token !== renderToken) return;
     if (w) render((next = enrich(next, w)));
   }
-  // Which registry holds each DOI, and (for one work) any retraction or correction notices.
-  // arXiv DOIs are DataCite's, which has no such notices.
-  const one = next.dois.length === 1 && !/^10\.48550\//.test(next.dois[0]) ? next.dois[0] : null;
+  // Which registry holds each DOI, and (for one work) any retraction, correction or
+  // withdrawal notices.
+  const one = next.dois.length === 1 ? next.dois[0] : null;
   const [ra, updates] = await Promise.all([lookupRegistries(next.dois), one ? lookupUpdates(one) : []]);
   if (token !== renderToken || (!Object.keys(ra).length && !updates.length)) return;
   render({ ...next, ra, updates });
@@ -184,11 +184,10 @@ function render(state) {
 /** Retraction/correction tags under the title, each opening its notice at doi.org. */
 function noticeTags(state) {
   const tags = (state.updates || []).map((u) => {
-    const a = el(u.doi ? 'a' : 'span', `btn${u.severe ? ' severe' : ''}`, `${u.label}${u.year ? ` ${u.year}` : ''}`);
-    if (u.doi) {
-      a.href = doiOrgUrl(u.doi);
-      a.title = `${u.label} notice: ${u.doi}`;
-    }
+    const href = u.url || (u.doi && doiOrgUrl(u.doi));
+    const a = el(href ? 'a' : 'span', `btn${u.severe ? ' severe' : ''}`, `${u.label}${u.year ? ` ${u.year}` : ''}`);
+    if (href) a.href = href;
+    a.title = u.note ? `${u.label}: “${u.note}”` : `${u.type === 'retraction' ? 'Retraction' : u.label} notice: ${u.doi || href}`;
     return a;
   });
   // OpenAlex knows of retractions Crossref doesn't list (other registries); no notice to link.

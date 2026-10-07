@@ -5,7 +5,7 @@ import {
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
   surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl, doiSearches,
   catalogFromUrl, parseCatalogRecord, recordCitation, freeCopies,
-  parseUpdates,
+  parseUpdates, parseArxivWithdrawal,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -260,4 +260,20 @@ test('parseUpdates: retraction and correction notices from Crossref updated-by',
     .map((u) => [u.label, u.severe]), [['Expression of concern', false]]);
   assert.deepEqual(parseUpdates({}), []);
   assert.deepEqual(parseUpdates(undefined), []);
+});
+
+test('parseArxivWithdrawal: an arXiv comment saying "withdrawn", from DataCite', () => {
+  // 10.48550/arXiv.1003.2568 as DataCite returns it (trimmed).
+  const rec = (comment) => ({ data: { attributes: { descriptions: [
+    { descriptionType: 'Abstract', description: 'Spectroscopically identified white dwarfs ... later withdrawn from the catalog' },
+    ...(comment ? [{ descriptionType: 'Other', description: comment }] : []),
+  ] } } });
+  assert.deepEqual(parseArxivWithdrawal('10.48550/arXiv.1003.2568', rec('withdrawn')),
+    [{ type: 'withdrawal', label: 'Withdrawn', url: 'https://arxiv.org/abs/1003.2568', note: 'withdrawn', year: null, severe: true }]);
+  assert.equal(parseArxivWithdrawal('10.48550/arXiv.math/9911108', rec('This paper has been withdrawn by the author'))[0].url,
+    'https://arxiv.org/abs/math/9911108');
+  // The abstract mentioning the word doesn't count; nor does a comment without it.
+  assert.deepEqual(parseArxivWithdrawal('10.48550/arXiv.1003.2568', rec(null)), []);
+  assert.deepEqual(parseArxivWithdrawal('10.48550/arXiv.1003.2568', rec('15 pages, 3 figures')), []);
+  assert.deepEqual(parseArxivWithdrawal('10.1037/x', rec('withdrawn')), []);
 });
