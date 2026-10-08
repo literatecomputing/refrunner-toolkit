@@ -118,9 +118,9 @@ test('targetsFor offers the expected destinations', () => {
   assert.deepEqual(labels(parseText(PSYCH)), [
     'Metadata sources/OpenAlex API', 'Metadata sources/Crossref search', 'Metadata sources/Crossref API',
     'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google', 'Search/PubMed',
-    'Search/Europe PMC', 'Search/Wikidata',
+    'Search/Europe PMC', 'Search/Wikidata', 'Search/OpenCitations',
     'API/Semantic Scholar', 'API/PubMed', 'API/Europe PMC', 'API/Wikidata',
-    'API/OpenCitations (citation count)',
+    'API/OpenCitations',
     'RefRunner/Send to RefRunner',
   ]);
   assert.deepEqual(labels(parseText('https://openalex.org/works/W2974823616')), [
@@ -154,7 +154,7 @@ test('moreSearches builds each page and API URL from the query', () => {
   assert.equal(s2ApiDoiUrl(PSYCH).split('?')[0], `https://api.semanticscholar.org/graph/v1/paper/DOI:${PSYCH}`);
   const d = Object.fromEntries(doiSearches(PSYCH).map((m) => [m.label, m]));
   assert.equal(d.PubMed.url, `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(PSYCH)}%5Bdoi%5D`);
-  assert.equal(d['OpenCitations (citation count)'].url, null);
+  assert.equal(d.OpenCitations.url, `https://search.opencitations.net/search?text=${encodeURIComponent(PSYCH)}&rule=citeddoi`);
 });
 
 test('popup heading is APA narrative style', () => {
