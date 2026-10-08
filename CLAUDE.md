@@ -23,7 +23,10 @@ Context for working on RefRunner Toolkit. See README.md for what it does and how
   install prompt never says "read and change all your data". The RefRunner permission (Oct 2026)
   lets a send go to a RefRunner tab that is already open (`handToOpenTab`): it posts
   `{ type: "refrunner-import", text }` to the tab, which the app takes if it has marked
-  `<html data-refrunner-handoff="1">`; otherwise a new tab opens as before. The dev server
+  `<html data-refrunner-handoff="1">`; otherwise a new tab opens as before. The other direction:
+  `lib/marker.js`, a content script on www.refrunner.com, sets `<html data-refrunner-toolkit="<version>">`
+  at document_start so the app knows the Toolkit is installed (and skips its install tip); for the
+  dev server it's registered at runtime while the localhost permission is granted. The dev server
   (`https://localhost:5173`) is an `optional_host_permissions` entry that the dev checkbox requests,
   so store installs never list localhost. Don't add other hosts without a strong reason.
   (The smoke test adds `<all_urls>` to its throwaway copy only, because Playwright can't click

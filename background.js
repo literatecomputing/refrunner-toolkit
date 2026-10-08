@@ -23,7 +23,21 @@ const ITEMS = [
 // Submenu of 'more': the searches RefRunner suggests for a reference it can't find.
 const MORE = moreSearches('').map((s) => s.label);
 
+// The install marker (lib/marker.js) on the dev server too, while the dev checkbox's localhost
+// permission is granted; www.refrunner.com gets it from the manifest. Registered scripts
+// persist, so this only needs to follow permission changes.
+const DEV_MARKER = { id: 'dev-marker', matches: ['https://localhost:5173/*'], js: ['lib/marker.js'], runAt: 'document_start' };
+async function syncDevMarker() {
+  const granted = await chrome.permissions.contains({ origins: DEV_MARKER.matches });
+  const [registered] = await chrome.scripting.getRegisteredContentScripts({ ids: [DEV_MARKER.id] });
+  if (granted && !registered) await chrome.scripting.registerContentScripts([DEV_MARKER]);
+  if (!granted && registered) await chrome.scripting.unregisterContentScripts({ ids: [DEV_MARKER.id] });
+}
+chrome.permissions.onAdded.addListener(syncDevMarker);
+chrome.permissions.onRemoved.addListener(syncDevMarker);
+
 chrome.runtime.onInstalled.addListener(() => {
+  syncDevMarker();
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({ id: 'root', title: 'RefRunner Toolkit', contexts: CONTEXTS });
     for (const item of ITEMS) chrome.contextMenus.create({ ...item, parentId: 'root', contexts: CONTEXTS });

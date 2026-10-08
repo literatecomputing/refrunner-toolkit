@@ -79,7 +79,7 @@ Help researchers check and look up scholarly references: send selected citations
 | scripting | Runs a small function in the active tab (only after the user acts, under activeTab) that reads the selected text and the page's citation meta tags (citation_doi, citation_title, citation_author, publication date). Nothing is changed on the page. |
 | contextMenus | Adds the "RefRunner Toolkit" right-click menu for selected text and links (OpenAlex, Crossref/DataCite, doi.org, Google Scholar, more searches, Send to RefRunner). |
 | storage | Remembers one developer setting (whether to send RefRunner links to a local development server). That option is only shown in unpacked development copies; store installs never use it. No user data is stored. |
-| Host permission: https://www.refrunner.com/* | When the user sends references to RefRunner and a RefRunner tab is already open, the extension finds that tab and hands the references to it instead of opening a new one. No other site is accessed with this permission. |
+| Host permission: https://www.refrunner.com/* | When the user sends references to RefRunner and a RefRunner tab is already open, the extension finds that tab and hands the references to it instead of opening a new one. A one-line content script on www.refrunner.com marks the page (data-refrunner-toolkit on <html>) so RefRunner knows the extension is installed and stops suggesting it; it reads nothing. No other site is accessed with this permission. |
 
 (The `https://localhost:5173/*` entry is an optional permission requested only from the
 development checkbox. Store users are never asked for it. If the form asks about it, say so.)

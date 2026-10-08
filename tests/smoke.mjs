@@ -223,6 +223,15 @@ const got = await rr.evaluate(() => window.got);
 ok(handed.rr && got.length === 1 && got[0] === big, 'open tab receives the full text');
 ok(handed.old === false, 'a tab without the hand-off mark falls back to a new tab');
 
+// 8. on RefRunner's own pages the extension marks <html> so the app knows it's installed
+await ctx.route('https://www.refrunner.com/marker-test', (r) => r.fulfill({ contentType: 'text/html', body: '<!doctype html><p>app</p>' }));
+const app = await ctx.newPage();
+await app.goto('https://www.refrunner.com/marker-test');
+const mark = await app.evaluate(() => document.documentElement.dataset.refrunnerToolkit);
+const version = JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.json'))).version;
+ok(mark === version, `refrunner.com marked with the installed version: ${mark}`);
+await app.close();
+
 console.log(errors.length ? 'ERRORS:\n' + errors.join('\n') : 'no console errors');
 await ctx.close();
 server.close();

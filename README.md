@@ -55,6 +55,11 @@ DOI is then handled like an article page; otherwise it becomes a citation (autho
 journal or publisher, ISBN), which goes to RefRunner and to the catalog searches. The same goes
 for such a link (or a bare ERIC number like `ED591473`) that you select, paste, or right-click.
 
+## On refrunner.com
+
+On RefRunner's own pages the extension sets `<html data-refrunner-toolkit="<version>">`, so the app
+knows it's installed and doesn't suggest installing it. It reads nothing there.
+
 ## Settings
 
 None. RefRunner picks the citation style. Unpacked (development) installs show a "Send to dev
