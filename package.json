@@ -8,7 +8,8 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "smoke": "PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1 node tests/smoke.mjs",
-    "package": "rm -f dist/refrunner-toolkit.zip && mkdir -p dist && zip -r dist/refrunner-toolkit.zip manifest.json background.js popup.* overflow.* ui.css lib icons"
+    "package": "rm -f dist/refrunner-toolkit.zip && mkdir -p dist && zip -r dist/refrunner-toolkit.zip manifest.json background.js popup.* overflow.* ui.css lib icons",
+    "store-status": "bash bin/store-status.sh"
   },
   "devDependencies": {
     "playwright": "^1.63.0"
