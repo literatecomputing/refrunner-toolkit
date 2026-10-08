@@ -17,4 +17,4 @@ if [ "$status" != completed ] || [ "$conclusion" != success ]; then
   echo "The check didn't finish cleanly: https://github.com/$repo/actions/runs/$id"
   exit 1
 fi
-gh run view "$id" -R "$repo" --log | grep -oE '(Live|In review): .*' | head -2
+gh run view "$id" -R "$repo" --log | grep -oE '(Live|In review): ([0-9][0-9.]*|none|\?)( .*)?$' | head -2

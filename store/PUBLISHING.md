@@ -20,7 +20,9 @@ the dashboard only; the API can't change them (texts are in `LISTING.md`).
   dashboard's Settings as the publisher's service account.
 - Workload identity pool/provider `github` (only `literatecomputing/refrunner-toolkit`).
 - Repo variables `GCP_WIF_PROVIDER` and `GCP_SERVICE_ACCOUNT`.
-- To check it works without releasing: Actions → **Store status** → Run workflow.
+- **What's live and what's in review:** `npm run store-status` (prints `Live:` and `In review:`).
+  Same as Actions → **Store status** → Run workflow. Google doesn't email when a version is
+  approved, so this is how to tell.
 
 ## One-time setup: let GitHub Actions publish
 
