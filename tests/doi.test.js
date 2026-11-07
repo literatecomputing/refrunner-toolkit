@@ -117,17 +117,16 @@ test('targetsFor offers the expected destinations', () => {
   const labels = (p, ra) => targetsFor(p, { ra }).map((t) => `${t.group}/${t.label}`);
   assert.deepEqual(labels(parseText(PSYCH)), [
     'Metadata sources/OpenAlex API', 'Metadata sources/Crossref search', 'Metadata sources/Crossref API',
-    'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google', 'Search/PubMed',
-    'Search/Europe PMC', 'Search/Wikidata', 'Search/OpenCitations',
+    'Search/Google', 'Search/Google -AI', 'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/PubMed',
+    'Search/Europe PMC', 'Search/Wikidata',
     'API/Semantic Scholar', 'API/PubMed', 'API/Europe PMC', 'API/Wikidata',
-    'API/OpenCitations',
     'RefRunner/Send to RefRunner',
   ]);
   assert.deepEqual(labels(parseText('https://openalex.org/works/W2974823616')), [
     'Metadata sources/OpenAlex API', 'Metadata sources/OpenAlex',
   ]);
   assert.deepEqual(labels(parseText('some title words')), [
-    'Search/Crossref', 'Search/OpenAlex', 'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/Google',
+    'Search/Google', 'Search/Google -AI', 'Search/Crossref', 'Search/OpenAlex', 'Search/Google Scholar', 'Search/Semantic Scholar',
     'Search/JSTOR', 'Search/ERIC', 'Search/Library of Congress', 'Search/Open Library',
     'Search/Google Books', 'Search/ResearchGate',
     'API/OpenAlex', 'API/Semantic Scholar', 'API/ERIC', 'API/Library of Congress',
@@ -154,7 +153,7 @@ test('moreSearches builds each page and API URL from the query', () => {
   assert.equal(s2ApiDoiUrl(PSYCH).split('?')[0], `https://api.semanticscholar.org/graph/v1/paper/DOI:${PSYCH}`);
   const d = Object.fromEntries(doiSearches(PSYCH).map((m) => [m.label, m]));
   assert.equal(d.PubMed.url, `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(PSYCH)}%5Bdoi%5D`);
-  assert.equal(d.OpenCitations.url, `https://search.opencitations.net/search?text=${encodeURIComponent(PSYCH)}&rule=citeddoi`);
+  assert.equal(d['Google -AI'].url, `https://www.google.com/search?udm=14&q=${encodeURIComponent(`"${PSYCH}"`)}`);
 });
 
 test('popup heading is APA narrative style', () => {

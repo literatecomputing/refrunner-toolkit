@@ -20,6 +20,7 @@ let pageState = null;
 let renderToken = 0;
 let base;
 let shown = null;
+let showApi = false;
 
 init();
 
@@ -41,6 +42,13 @@ async function init() {
   showShortcuts();
   base = await refrunnerBase();
   if (IS_DEV) setUpDevToggle();
+  ({ showApi = false } = await chrome.storage.local.get('showApi'));
+  $('#show-api').checked = showApi;
+  $('#show-api').addEventListener('change', (e) => {
+    showApi = e.target.checked;
+    chrome.storage.local.set({ showApi });
+    if (shown) render(shown);
+  });
 
   // Selected text wins over the page, as it does in the right-click menu.
   const selection = await readSelection(tab);
@@ -171,6 +179,7 @@ function render(state) {
 
   const groups = new Map();
   for (const t of targetsFor(state, { ra: state.ra, base })) {
+    if (t.group === 'API' && !showApi) continue;
     if (!groups.has(t.group)) groups.set(t.group, []);
     groups.get(t.group).push(t);
   }

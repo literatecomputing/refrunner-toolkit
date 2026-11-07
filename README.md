@@ -13,12 +13,12 @@ A Chrome extension for getting from an article to its records:
   Retraction Watch), plus OpenAlex's `is_retracted` for DOIs Crossref doesn't hold. arXiv papers
   (DataCite DOIs) get **Withdrawn** when their arXiv comment, which DataCite keeps, says withdrawn.
 - **Search / API**, for text: every place RefRunner suggests when it can't find a reference —
-  Crossref, Google Scholar, Semantic Scholar, Google, JSTOR, ERIC, Library of Congress, Open
+  Crossref, Google Scholar, Semantic Scholar, Google, Google -AI (`udm=14`, no AI Overview), JSTOR, ERIC, Library of Congress, Open
   Library, Google Books, ResearchGate — under *Search*, and the raw results of those with a keyless
-  public API (OpenAlex, Semantic Scholar, ERIC, LC, Open Library, Google Books) under *API*. (The
+  public API (OpenAlex, Semantic Scholar, ERIC, LC, Open Library, Google Books) under *API* (hidden unless the popup's "Show API links" box is ticked). (The
   Semantic Scholar and Google Books APIs are rate-limited and sometimes answer 429.) A DOI gets
   the places that look works up by DOI: Google Scholar, Semantic Scholar, Google, PubMed, Europe
-  PMC and Wikidata under Search, and their APIs plus OpenCitations' citation count under API. The context menu's *More
+  PMC and Wikidata under Search, and their APIs under API. The context menu's *More
   searches* submenu has the search pages.
 - **Right-click** a selection or a link → *RefRunner Toolkit* → same destinations. Selections can be one
   DOI, several DOIs, an OpenAlex ID, a URL, or whole citations.
