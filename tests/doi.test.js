@@ -5,7 +5,7 @@ import {
   oaApiDoiUrl, refrunnerUrl, targetsFor, REFRUNNER_MAX_URL,
   surname, citeLine, registryOf, moreSearches, s2ApiDoiUrl, doiSearches,
   catalogFromUrl, parseCatalogRecord, recordCitation, freeCopies,
-  parseUpdates, parseArxivWithdrawal,
+  parseUpdates, parseArxivWithdrawal, CATALOGS, cleanIsbn, apaDate, youtubeId, pageCitation,
 } from '../lib/doi.js';
 
 const PSYCH = '10.1111/j.1467-9280.2005.01636.x';
@@ -117,7 +117,7 @@ test('targetsFor offers the expected destinations', () => {
   const labels = (p, ra) => targetsFor(p, { ra }).map((t) => `${t.group}/${t.label}`);
   assert.deepEqual(labels(parseText(PSYCH)), [
     'Metadata sources/OpenAlex API', 'Metadata sources/Crossref search', 'Metadata sources/Crossref API',
-    'Search/Google', 'Search/Google -AI', 'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/PubMed',
+    'Search/Google', 'Search/Google/NO AI', 'Search/Google Scholar', 'Search/Semantic Scholar', 'Search/PubMed',
     'Search/Europe PMC', 'Search/Wikidata',
     'API/Semantic Scholar', 'API/PubMed', 'API/Europe PMC', 'API/Wikidata',
     'RefRunner/Send to RefRunner',
@@ -126,11 +126,11 @@ test('targetsFor offers the expected destinations', () => {
     'Metadata sources/OpenAlex API', 'Metadata sources/OpenAlex',
   ]);
   assert.deepEqual(labels(parseText('some title words')), [
-    'Search/Google', 'Search/Google -AI', 'Search/Crossref', 'Search/OpenAlex', 'Search/Google Scholar', 'Search/Semantic Scholar',
+    'Search/Google', 'Search/Google/NO AI', 'Search/Crossref', 'Search/OpenAlex', 'Search/Google Scholar', 'Search/Semantic Scholar',
     'Search/JSTOR', 'Search/ERIC', 'Search/Library of Congress', 'Search/Open Library',
-    'Search/Google Books', 'Search/ResearchGate',
+    'Search/Google Books', 'Search/ResearchGate', 'Search/Wikidata',
     'API/OpenAlex', 'API/Semantic Scholar', 'API/ERIC', 'API/Library of Congress',
-    'API/Open Library', 'API/Google Books',
+    'API/Open Library', 'API/Google Books', 'API/Wikidata',
     'RefRunner/Add to RefRunner References',
   ]);
   const groups = (p, ra) => [...new Set(targetsFor(p, { ra }).map((t) => t.group))];
@@ -153,7 +153,7 @@ test('moreSearches builds each page and API URL from the query', () => {
   assert.equal(s2ApiDoiUrl(PSYCH).split('?')[0], `https://api.semanticscholar.org/graph/v1/paper/DOI:${PSYCH}`);
   const d = Object.fromEntries(doiSearches(PSYCH).map((m) => [m.label, m]));
   assert.equal(d.PubMed.url, `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(PSYCH)}%5Bdoi%5D`);
-  assert.equal(d['Google -AI'].url, `https://www.google.com/search?udm=14&q=${encodeURIComponent(`"${PSYCH}"`)}`);
+  assert.equal(d['Google/NO AI'].url, `https://www.google.com/search?udm=14&q=${encodeURIComponent(`"${PSYCH}"`)}`);
 });
 
 test('popup heading is APA narrative style', () => {
@@ -229,6 +229,52 @@ test('free copies from OpenAlex locations: PDFs and PMC, repositories first, no 
   assert.deepEqual(freeCopies(undefined), []);
 });
 
+test('Wikidata items: id from the URL, names from the linked items, the album\'s year', () => {
+  assert.deepEqual(catalogFromUrl('https://www.wikidata.org/wiki/Q62019993'), { kind: 'wikidata', id: 'Q62019993' });
+  assert.deepEqual(parseText('http://www.wikidata.org/entity/Q190192').catalog, { kind: 'wikidata', id: 'Q190192' });
+  assert.equal(catalogFromUrl('https://www.wikidata.org/wiki/Property:P356'), null);
+  const item = (claims) => Object.fromEntries(Object.entries(claims).map(([p, vs]) =>
+    [p, vs.map((v) => ({ mainsnak: { datavalue: { value: v } } }))]));
+  const song = { entities: { Q62019993: { labels: { en: { value: 'Saturday in the Park' } },
+    claims: item({ P31: [{ id: 'Q105543609' }], P175: [{ id: 'Q371938' }], P361: [{ id: 'Q2963331' }] }) } } };
+  assert.match(CATALOGS.wikidata.linked(song, 'Q62019993'), /ids=Q371938%7CQ2963331&.*origin=\*$/);
+  const linked = { entities: {
+    Q371938: { labels: { en: { value: 'Chicago' } } },
+    Q2963331: { labels: { en: { value: 'Chicago V' } }, claims: item({ P577: [{ time: '+1972-07-10T00:00:00Z' }], P264: [{ id: 'Q183387' }] }) },
+  } };
+  // The album's record label takes a third request.
+  assert.match(CATALOGS.wikidata.linked(song, 'Q62019993', linked.entities), /ids=Q183387&/);
+  linked.entities.Q183387 = { labels: { en: { value: 'Columbia Records' } } };
+  assert.equal(CATALOGS.wikidata.linked(song, 'Q62019993', linked.entities), null);
+  const r = parseCatalogRecord({ kind: 'wikidata', id: 'Q62019993' }, song, linked);
+  assert.equal(recordCitation(r), 'Chicago. (1972). Saturday in the Park [Song]. On Chicago V [Album]. Columbia Records.');
+  // A person as APA names them; no album or date.
+  linked.entities.Q371938.claims = item({ P31: [{ id: 'Q5' }] });
+  linked.entities.Q371938.labels.en.value = 'Lucy Dacus';
+  song.entities.Q62019993.claims.P361 = [];
+  assert.equal(recordCitation(parseCatalogRecord({ kind: 'wikidata', id: 'Q62019993' }, song, linked)),
+    'Dacus, L. (n.d.). Saturday in the Park [Song].');
+  // An album: its label, and not the list it's "part of".
+  const album = { entities: { Q2963331: { labels: { en: { value: 'Chicago V' } }, claims: item({
+    P31: [{ id: 'Q482994' }], P175: [{ id: 'Q371938' }], P361: [{ id: 'Q99' }], P123: [{ id: 'Q98' }],
+    P264: [{ id: 'Q183387' }], P577: [{ time: '+1972-07-10T00:00:00Z' }] }) } } };
+  linked.entities.Q99 = { labels: { en: { value: "Chicago's albums in chronological order" } } };
+  assert.equal(recordCitation(parseCatalogRecord({ kind: 'wikidata', id: 'Q2963331' }, album, linked)),
+    'Dacus, L. (1972). Chicago V [Album]. Columbia Records.');
+  // An article: listed authors in order (items and plain names), its DOI.
+  const ordinal = (n) => ({ P1545: [{ datavalue: { value: String(n) } }] });
+  const art = { entities: { Q1: { labels: { en: { value: 'x' } }, claims: {
+    P1476: [{ mainsnak: { datavalue: { value: { text: 'A Title' } } } }],
+    P50: [{ mainsnak: { datavalue: { value: { id: 'Q2' } } }, qualifiers: ordinal(2) }],
+    P2093: [{ mainsnak: { datavalue: { value: 'First Author' } }, qualifiers: ordinal(1) }],
+    P356: [{ mainsnak: { datavalue: { value: '10.1371/JOURNAL.PONE.0009505' } } }],
+    P577: [{ mainsnak: { datavalue: { value: { time: '+2010-03-03T00:00:00Z' } } } }],
+  } } } };
+  const a = parseCatalogRecord({ kind: 'wikidata', id: 'Q1' }, art, { entities: { Q2: { labels: { en: { value: 'Second Author' } } } } });
+  assert.deepEqual([a.title, a.authors, a.year, a.doi], ['A Title', ['First Author', 'Second Author'], 2010, '10.1371/JOURNAL.PONE.0009505']);
+  assert.equal(parseCatalogRecord({ kind: 'wikidata', id: 'Q9' }, { entities: { Q9: { missing: '' } } }), null);
+});
+
 test('parseText: ERIC and Open Library links and bare ERIC numbers name a catalog record', () => {
   const link = parseText('https://eric.ed.gov/?id=ED591473');
   assert.deepEqual([link.catalog, link.onlyIds, link.dois], [{ kind: 'eric', id: 'ED591473' }, true, []]);
@@ -275,4 +321,48 @@ test('parseArxivWithdrawal: an arXiv comment saying "withdrawn", from DataCite',
   assert.deepEqual(parseArxivWithdrawal('10.48550/arXiv.1003.2568', rec(null)), []);
   assert.deepEqual(parseArxivWithdrawal('10.48550/arXiv.1003.2568', rec('15 pages, 3 figures')), []);
   assert.deepEqual(parseArxivWithdrawal('10.1037/x', rec('withdrawn')), []);
+});
+
+test('ISBNs: checked, normalized, looked up in Open Library', () => {
+  assert.equal(cleanIsbn('0-441-17271-7'), '0441172717');
+  assert.equal(cleanIsbn('978-0-441-17271-9'), '9780441172719');
+  assert.equal(cleanIsbn('978-0-441-17271-8'), null); // bad check digit
+  assert.equal(cleanIsbn('0-8044-2957-X'), '080442957X');
+  assert.deepEqual(parseText('ISBN 0-441-17271-7').catalog, { kind: 'isbn', id: '0441172717' });
+  assert.deepEqual(parseText('ISBN-13: 978 0 441 17271 9').catalog, { kind: 'isbn', id: '9780441172719' });
+  assert.equal(parseText('ISBN 0441172717 1990').onlyIds, true);
+  assert.equal(parseText('Call 555-123-4567').catalog, null);
+  assert.deepEqual(catalogFromUrl('https://openlibrary.org/isbn/9780441172719'), { kind: 'isbn', id: '9780441172719' });
+  const r = parseCatalogRecord({ kind: 'isbn', id: '9780441172719' },
+    { 'ISBN:9780441172719': { title: 'Dune', authors: [{ name: 'Frank Herbert' }], publish_date: '2005', publishers: [{ name: 'Ace' }] } });
+  assert.equal(recordCitation(r), 'Frank Herbert (2005). Dune. Ace.');
+});
+
+test('a page with no identifier becomes a reference', () => {
+  assert.equal(apaDate('2024-03-05T10:00:00Z'), '2024, March 5');
+  assert.equal(apaDate('2019/05'), '2019, May');
+  assert.equal(apaDate('2019'), '2019');
+  assert.equal(apaDate(''), null);
+  assert.equal(youtubeId('https://www.youtube.com/watch?list=x&v=dQw4w9WgXcQ&t=3'), 'dQw4w9WgXcQ');
+  assert.equal(youtubeId('https://youtu.be/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(youtubeId('https://www.youtube.com/@channel'), null);
+
+  // Google Scholar tags: journal, volume(issue), pages.
+  const tagged = pageCitation({ citation: { title: 'Why?', authors: ['A. One', 'B. Two'], date: '2020/01/02',
+    journal: 'J. Things', volume: '12', issue: '3', firstpage: '45', lastpage: '67' } }, 'https://repo.example/item/9#top');
+  assert.equal(tagged.citation, 'A. One, B. Two (2020). Why? J. Things, 12(3), 45–67. https://repo.example/item/9');
+
+  // YouTube: oEmbed's title and channel; the date only from tags that belong to this video.
+  const yt = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&utm_source=x';
+  const oembed = { title: 'Never Gonna Give You Up', author_name: 'Rick Astley' };
+  assert.equal(pageCitation({ canonical: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', published: '2009-10-25', title: 'x' }, yt, oembed).citation,
+    'Rick Astley. (2009, October 25). Never Gonna Give You Up [Video]. YouTube. https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+  assert.match(pageCitation({ canonical: 'https://www.youtube.com/watch?v=OTHERVIDEO1', published: '2001-01-01', title: 'x' }, yt, oembed).citation,
+    /^Rick Astley\. \(n\.d\.\)\./);
+
+  // A web page: the site stands in for a missing author; tracking parameters dropped.
+  assert.equal(pageCitation({ title: 'Headline', site: 'News Co', published: '2024-03-05' }, 'https://news.example/a?utm_source=x&id=2').citation,
+    'News Co. (2024, March 5). Headline. https://news.example/a?id=2');
+  assert.equal(pageCitation({ title: 'Untitled thing' }, 'https://x.example/').citation, 'Untitled thing. (n.d.). https://x.example/');
+  assert.equal(pageCitation({ title: '' }, 'https://x.example/'), null);
 });

@@ -11,6 +11,11 @@ const SOURCE_LABELS = {
   openalex: 'OpenAlex record',
   openlibrary: 'Open Library edition',
   eric: 'ERIC record',
+  wikidata: 'Wikidata item',
+  isbn: 'ISBN, from Open Library',
+  'citation-tags': 'Citation from the page’s tags (no DOI)',
+  youtube: 'YouTube video',
+  webpage: 'This web page',
   manual: 'From what you pasted',
   selection: 'From your selection',
 };
@@ -63,15 +68,17 @@ async function init() {
     title: d.title,
     authors: d.authors,
     year: d.year,
+    // No identifier: the page's own reference goes to RefRunner, and its title to the searches.
+    ...(d.citation ? { text: d.citation, leftover: d.title, onlyIds: false, fromPage: true } : {}),
   });
   show(pageState);
   // A book's citation (and its RefRunner button) arrives after the lookup; let that take focus.
   if (!$('#groups .refrunner .btn') && !pageState.catalog) $('#manual').focus();
 }
 
-function stateFrom({ dois = [], openalex = [], catalog = null, source = null, title = null, authors = [], year = null, text, leftover = '', onlyIds = true }) {
+function stateFrom({ dois = [], openalex = [], catalog = null, source = null, title = null, authors = [], year = null, text, leftover = '', onlyIds = true, fromPage = false }) {
   return {
-    dois, openalex, catalog, isbn: '', source, title, authors, year, leftover, onlyIds,
+    dois, openalex, catalog, isbn: '', source, title, authors, year, leftover, onlyIds, fromPage,
     text: text ?? [...dois, ...openalex.map((o) => o.id)].join('\n'),
     note: '', ra: {},
   };
@@ -152,7 +159,7 @@ function enrich(state, w) {
 
 function render(state) {
   shown = state;
-  const hasIds = state.dois.length || state.openalex.length || state.catalog;
+  const hasIds = state.dois.length || state.openalex.length || state.catalog || state.fromPage;
   $('#found').hidden = !hasIds;
   $('#empty').hidden = !!hasIds || ['manual', 'selection'].includes(state.source);
 
@@ -174,7 +181,7 @@ function render(state) {
     ...state.dois.map((d) => idRow('DOI', d)),
     ...state.openalex.map((o) => idRow('OA', o.id)),
     ...(state.catalog ? [idRow(CATALOGS[state.catalog.kind].idLabel, state.catalog.id)] : []),
-    ...(state.isbn ? [idRow('ISBN', state.isbn)] : []),
+    ...(state.isbn && state.catalog?.kind !== 'isbn' ? [idRow('ISBN', state.isbn)] : []),
   );
 
   const groups = new Map();

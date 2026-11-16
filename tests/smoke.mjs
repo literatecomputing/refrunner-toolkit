@@ -28,6 +28,16 @@ fs.writeFileSync(path.join(SP, 'site/old/index.html'), '<!doctype html><p>old bu
 fs.writeFileSync(path.join(SP, 'site/article/index.html'),
   '<!doctype html><meta name="citation_doi" content="10.1126/science.abc1234"><meta name="citation_title" content="Meta Title"><p>no doi in url</p>');
 
+// No DOI: a thesis with Google Scholar tags, and a blog post with only Open Graph tags.
+fs.mkdirSync(path.join(SP, 'site/thesis'), { recursive: true });
+fs.writeFileSync(path.join(SP, 'site/thesis/index.html'),
+  '<!doctype html><meta name="citation_title" content="A Thesis"><meta name="citation_author" content="Ann Author">'
+  + '<meta name="citation_publication_date" content="2019/05/03"><meta name="citation_dissertation_institution" content="Some University">');
+fs.mkdirSync(path.join(SP, 'site/blog'), { recursive: true });
+fs.writeFileSync(path.join(SP, 'site/blog/index.html'),
+  '<!doctype html><title>ignored</title><meta property="og:title" content="A Post"><meta property="og:site_name" content="The Blog">'
+  + '<meta name="author" content="Bo Writer"><meta property="article:published_time" content="2024-03-05T10:00:00Z">');
+
 const server = http.createServer((req, res) => {
   const f = path.join(SP, 'site', decodeURIComponent(req.url.split('?')[0]));
   const file = fs.existsSync(f) && fs.statSync(f).isDirectory() ? path.join(f, 'index.html') : f;
@@ -79,6 +89,17 @@ const meta = await ctx.newPage();
 await meta.goto('http://localhost:8765/article/');
 d = await detect('http://localhost:8765/article/*');
 ok(d.doi === '10.1126/science.abc1234' && d.source === 'meta' && d.title === 'Meta Title', `meta detection ${JSON.stringify(d)}`);
+
+for (const [p, want] of [
+  ['thesis', 'Ann Author (2019). A Thesis. Some University. http://localhost:8765/thesis/'],
+  ['blog', 'Bo Writer. (2024, March 5). A Post. The Blog. http://localhost:8765/blog/'],
+]) {
+  const t = await ctx.newPage();
+  await t.goto(`http://localhost:8765/${p}/`);
+  d = await detect(`http://localhost:8765/${p}/*`);
+  ok(d.citation === want && !d.doi, `${p} page becomes a reference: ${d.citation}`);
+  await t.close();
+}
 
 // 2. OpenAlex lookup through real network
 const w = await helper.evaluate(async () => {

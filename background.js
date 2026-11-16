@@ -68,7 +68,7 @@ async function handleShortcut(command, tab) {
     let text = await readSelection(tab);
     if (!text) {
       const d = await detectForTab(tab);
-      text = d.doi || d.openalex?.id || (d.catalog ? tab.url : '');
+      text = d.doi || d.openalex?.id || (d.catalog ? tab.url : '') || d.citation || '';
     }
     return sendToRefRunner(await resolveCatalog(parseText(text)), tab);
   }
@@ -80,7 +80,7 @@ async function handleShortcut(command, tab) {
 }
 
 /**
- * A bare Open Library or ERIC link/id stands for its record: its DOI if it has one, else its
+ * A bare Open Library, ERIC or Wikidata link/id (or an ISBN) stands for its record: its DOI if it has one, else its
  * citation. Anything else (a citation that merely contains such a link) is left as it is.
  */
 async function resolveCatalog(parsed) {

@@ -13,9 +13,9 @@ A Chrome extension for getting from an article to its records:
   Retraction Watch), plus OpenAlex's `is_retracted` for DOIs Crossref doesn't hold. arXiv papers
   (DataCite DOIs) get **Withdrawn** when their arXiv comment, which DataCite keeps, says withdrawn.
 - **Search / API**, for text: every place RefRunner suggests when it can't find a reference —
-  Crossref, Google Scholar, Semantic Scholar, Google, Google -AI (`udm=14`, no AI Overview), JSTOR, ERIC, Library of Congress, Open
-  Library, Google Books, ResearchGate — under *Search*, and the raw results of those with a keyless
-  public API (OpenAlex, Semantic Scholar, ERIC, LC, Open Library, Google Books) under *API* (hidden unless the popup's "Show API links" box is ticked). (The
+  Crossref, Google Scholar, Semantic Scholar, Google, Google/NO AI (`udm=14`: no AI Overview), JSTOR, ERIC, Library of Congress, Open
+  Library, Google Books, ResearchGate, Wikidata — under *Search*, and the raw results of those with a keyless
+  public API (OpenAlex, Semantic Scholar, ERIC, LC, Open Library, Google Books, Wikidata) under *API* (hidden unless the popup's "Show API links" box is ticked). (The
   Semantic Scholar and Google Books APIs are rate-limited and sometimes answer 429.) A DOI gets
   the places that look works up by DOI: Google Scholar, Semantic Scholar, Google, PubMed, Europe
   PMC and Wikidata under Search, and their APIs under API. The context menu's *More
@@ -50,10 +50,19 @@ OpenAlex pages (`openalex.org/works/W…`, `api.openalex.org/w…`, `?zoom=w…`
 directly; authors, sources, institutions etc. work too.
 
 Catalog record pages are looked up in the catalog's API: Open Library editions
-(`openlibrary.org/books/OL…M`) and ERIC records (`eric.ed.gov/?id=ED…` or `EJ…`). A record with a
+(`openlibrary.org/books/OL…M`), ERIC records (`eric.ed.gov/?id=ED…` or `EJ…`), and Wikidata items
+(`wikidata.org/wiki/Q…`: songs, films, books, articles). A song or album is cited the APA way:
+"Dacus, L. (2018). Night shift [Song]. On Historian [Album]. Matador Records.", taking the
+album's date and label when the song has none of its own. A record with a
 DOI is then handled like an article page; otherwise it becomes a citation (authors, year, title,
 journal or publisher, ISBN), which goes to RefRunner and to the catalog searches. The same goes
-for such a link (or a bare ERIC number like `ED591473`) that you select, paste, or right-click.
+for such a link (or a bare ERIC number like `ED591473`, or an ISBN, looked up in Open Library)
+that you select, paste, or right-click.
+
+A page with none of these still becomes a reference for RefRunner, built from the page's tags:
+Google Scholar's `citation_*` tags (repositories, theses, conference sites), else for a YouTube
+video "Channel. (2009, October 25). Title [Video]. YouTube. URL" (title and channel from
+YouTube's oEmbed), else "Author or site. (2024, March 5). Title. Site. URL".
 
 ## On refrunner.com
 
