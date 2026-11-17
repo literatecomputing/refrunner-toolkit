@@ -63,6 +63,11 @@ await ctx.route('https://api.openalex.org/**', (route) => {
   const body = MOCK[key];
   route.fulfill(body ? { status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) } : { status: 404, body: '{}' });
 });
+// The registries are not under test: keep CI off the network (Crossref rate-limits shared IPs).
+const json = (body) => (route) => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+await ctx.route('https://doi.org/ra/**', json([]));
+await ctx.route('https://api.crossref.org/**', json({ message: {} }));
+await ctx.route('https://api.datacite.org/**', json({}));
 let [sw] = ctx.serviceWorkers();
 sw ||= await ctx.waitForEvent('serviceworker');
 sw.on('console', (m) => m.type() === 'error' && errors.push('SW: ' + m.text()));
