@@ -33,7 +33,8 @@ CHECK REFERENCES
 
 JUMP FROM ANY ARTICLE
 • Finds the DOI from the page address or the publisher's metadata tags (works on most journal sites, including ones whose URLs don't show the DOI), and arXiv IDs.
-• On a library catalog record (Open Library or ERIC), builds the citation or uses the record's DOI, to check in RefRunner.
+• On a library catalog record (Open Library, ERIC, or Wikidata) or for an ISBN, builds the citation or uses the record's DOI, to check in RefRunner.
+• On a page with no DOI (a thesis, a report, a news story, a video), builds a reference from what the page says about itself.
 • Shows the work as "Author (year). Title", with its DOI and OpenAlex ID ready to copy.
 • Flags retracted works, published corrections, and withdrawn arXiv preprints, each linking to its notice.
 • Opens the work's metadata record from whichever registry holds its DOI, so preprints and datasets go to the right place.
@@ -76,16 +77,16 @@ Help researchers check and look up scholarly references: send selected citations
 | Permission | Justification |
 |---|---|
 | activeTab | Lets the extension read the current page only after the user clicks the toolbar button, uses the right-click menu, or presses a shortcut. Used to find the page's DOI and the user's selected text. No access to any page otherwise. |
-| scripting | Runs a small function in the active tab (only after the user acts, under activeTab) that reads the selected text and the page's citation meta tags (citation_doi, citation_title, citation_author, publication date). Nothing is changed on the page. |
+| scripting | Runs a small function in the active tab (only after the user acts, under activeTab) that reads the selected text and the page's citation meta tags (citation_doi, citation_title, citation_author, publication date and the other citation_* tags), and, for a page without them, its title, site name, author, published date and canonical address. Nothing is changed on the page. |
 | contextMenus | Adds the "RefRunner Toolkit" right-click menu for selected text and links (OpenAlex, Crossref/DataCite, doi.org, Google Scholar, more searches, Send to RefRunner). |
-| storage | Remembers one developer setting (whether to send RefRunner links to a local development server). That option is only shown in unpacked development copies; store installs never use it. No user data is stored. |
+| storage | Remembers two checkboxes: whether the popup shows its "API" links, and one developer setting (whether to send RefRunner links to a local development server), which is only shown in unpacked development copies; store installs never use it. No user data is stored. |
 | Host permission: https://www.refrunner.com/* | When the user sends references to RefRunner and a RefRunner tab is already open, the extension finds that tab and hands the references to it instead of opening a new one. A one-line content script on www.refrunner.com marks the page (data-refrunner-toolkit on <html>) so RefRunner knows the extension is installed and stops suggesting it; it reads nothing. No other site is accessed with this permission. |
 
 (The `https://localhost:5173/*` entry is an optional permission requested only from the
 development checkbox. Store users are never asked for it. If the form asks about it, say so.)
 
 **Remote code:** No, I am not using remote code. (All JavaScript ships in the package; the
-extension only fetches JSON data from api.openalex.org, api.crossref.org, api.datacite.org, doi.org, openlibrary.org, and api.ies.ed.gov (ERIC).)
+extension only fetches JSON data from api.openalex.org, api.crossref.org, api.datacite.org, doi.org, openlibrary.org, api.ies.ed.gov (ERIC), www.wikidata.org, and www.youtube.com (oEmbed: a video's title and channel).)
 
 **Data usage:** tick **Website content** only. The extension reads the selected text and
 citation metadata of the page the user acts on, and sends identifiers and text the user chose
@@ -102,5 +103,5 @@ Then certify all three:
 
 ## Distribution tab
 
-- Visibility: **Unlisted** for the first release (install by link), then Public.
+- Visibility: **Public** (was Unlisted for the first releases, install by link).
 - Regions: all.
